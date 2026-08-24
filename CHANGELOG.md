@@ -4,6 +4,13 @@ Each release lists what changed, what updating means for existing code, and ever
 
 ## Unreleased
 
+## Unreleased
+
+Bug fixes; no change needed in existing code.
+
+- Linux: envelope attack and fade levels are scaled by 65535/32767 instead of doubled, so the
+  full Linux level 32767 arrives as 65535 instead of 65534
+
 ## 0.1.0 - 2026-08-05
 
 First release.
