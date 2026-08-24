@@ -207,7 +207,7 @@ int vpad_os_send(vpad_t *pad)
 
 static uint16_t vpad_envelope_level(uint16_t level)
 {
-    return level >= 32768 ? 65535 : (uint16_t)(level * 2);
+    return level >= 32767 ? 65535 : (uint16_t)((uint32_t)level * 65535u / 32767u);
 }
 
 static void vpad_envelope(const struct ff_envelope *env, vpad_effect_t *out)

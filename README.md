@@ -108,7 +108,7 @@ calling it while the pad exists. See [`examples/basic.c`](examples/basic.c) and
 [`examples/rumble.c`](examples/rumble.c).
 
 Effect values follow padff: magnitudes 0 to 65535, signed levels -32768 to 32767, envelope
-levels 0 to 65535 (twice the Linux range), times in milliseconds.
+levels 0 to 65535 (the Linux 0 to 32767 scaled up, full to full), times in milliseconds.
 
 Conventions:
 

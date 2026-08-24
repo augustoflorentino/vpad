@@ -391,7 +391,7 @@ static void test_force_feedback(void)
     CHECK(events[4].kind == VPAD_EV_UPLOAD && events[4].slot == game.periodic_id);
     CHECK(events[4].effect.type == VPAD_PERIODIC && events[4].effect.level == -0x2000);
     CHECK(events[4].effect.attack_ms == 50 && events[4].effect.attack_level == 0x2000);
-    CHECK(events[4].effect.fade_ms == 70 && events[4].effect.fade_level == 0xfffe);
+    CHECK(events[4].effect.fade_ms == 70 && events[4].effect.fade_level == 0xffff);
     CHECK(events[4].effect.length_ms == 300);
     CHECK(events[5].kind == VPAD_EV_PLAY && events[5].slot == game.rumble_id && events[5].value == 0);
     CHECK(events[6].kind == VPAD_EV_ERASE && events[6].slot == game.rumble_id);
