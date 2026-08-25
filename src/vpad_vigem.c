@@ -286,15 +286,16 @@ int vpad_os_poll(vpad_t *pad)
 {
     struct vpad_os *os = pad->os;
     DWORD done = 0;
+    BOOL ok;
 
     if (!os->pending || VPAD_QUEUE_LEN - pad->queue_len < 2 || !HasOverlappedIoCompleted(&os->ov))
         return VPAD_OK;
     os->pending = 0;
-    if (!GetOverlappedResult(os->bus, &os->ov, &done, FALSE))
-        return VPAD_ERR_IO;
-    vpad_vigem_rumble(pad, os->notification.large_motor, os->notification.small_motor);
+    ok = GetOverlappedResult(os->bus, &os->ov, &done, FALSE);
+    if (ok)
+        vpad_vigem_rumble(pad, os->notification.large_motor, os->notification.small_motor);
     vpad_vigem_request(pad);
-    return VPAD_OK;
+    return ok ? VPAD_OK : VPAD_ERR_IO;
 }
 
 vpad_handle_t vpad_os_handle(const vpad_t *pad)
