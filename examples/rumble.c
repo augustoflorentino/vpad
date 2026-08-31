@@ -2,26 +2,6 @@
 
 #include <stdio.h>
 
-#if defined(_WIN32)
-#include <windows.h>
-#else
-#include <poll.h>
-#endif
-
-static void wait_for(vpad_handle_t handle)
-{
-#if defined(_WIN32)
-    WaitForSingleObject(handle, INFINITE);
-#else
-    struct pollfd pfd;
-
-    pfd.fd = handle;
-    pfd.events = POLLIN;
-    pfd.revents = 0;
-    poll(&pfd, 1, -1);
-#endif
-}
-
 static void print_event(const vpad_event_t *event)
 {
     switch (event->kind) {
@@ -36,8 +16,13 @@ static void print_event(const vpad_event_t *event)
     case VPAD_EV_PLAY:
         printf("play slot %u, %lu times\n", event->slot, (unsigned long)event->value);
         break;
-    default:
+    case VPAD_EV_GAIN:
         printf("gain %lu\n", (unsigned long)event->value);
+        break;
+    case VPAD_EV_PLAYER:
+        printf("player %lu\n", (unsigned long)event->value + 1);
+        break;
+    default:
         break;
     }
     fflush(stdout);
@@ -57,7 +42,7 @@ int main(void)
         if (status == VPAD_OK)
             print_event(&event);
         else if (status == VPAD_ERR_AGAIN)
-            wait_for(vpad_handle(pad));
+            status = vpad_wait(pad, -1);
     }
     vpad_destroy(pad);
     fprintf(stderr, "error (%s backend): %s\n", vpad_backend(), vpad_strerror(status));
