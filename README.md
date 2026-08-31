@@ -100,10 +100,14 @@ Events:
 | `VPAD_EV_ERASE` | effect slot | | |
 | `VPAD_EV_PLAY` | effect slot | repeat count, 0 stops | |
 | `VPAD_EV_GAIN` | 0 | gain, 0 to 65535 | |
+| `VPAD_EV_PLAYER` | 0 | player slot the host gave the pad, 0 to 3 (Windows) | |
 
-`vpad_next_event` returns `VPAD_ERR_AGAIN` when nothing is waiting. Wait on `vpad_handle`
-(a file descriptor to `poll` on POSIX, an event to `WaitForSingleObject` on Windows) and call
-it again. On Linux a game's upload or erase blocks until you call `vpad_next_event`, so keep
+New kinds may appear in minor versions; ignore the ones you do not know.
+
+`vpad_next_event` returns `VPAD_ERR_AGAIN` when nothing is waiting. `vpad_wait(pad, timeout_ms)`
+blocks until an event may be ready (`VPAD_OK`) or the time passes (`VPAD_ERR_AGAIN`); `-1` waits
+without limit. To wait together with other sources, use `vpad_handle` instead: a file
+descriptor to `poll` on POSIX, an event to `WaitForSingleObject` on Windows. On Linux a game's upload or erase blocks until you call `vpad_next_event`, so keep
 calling it while the pad exists. See [`examples/basic.c`](examples/basic.c) and
 [`examples/rumble.c`](examples/rumble.c).
 
