@@ -4,7 +4,7 @@ Each release lists what changed, what updating means for existing code, and ever
 
 ## Unreleased
 
-## Unreleased
+## 0.1.1 - 2026-08-31
 
 Bug fixes; no change needed in existing code.
 
