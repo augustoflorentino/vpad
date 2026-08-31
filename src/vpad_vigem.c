@@ -65,6 +65,8 @@ struct vpad_os {
     OVERLAPPED ov;
     int pending;
     int playing;
+    int player_known;
+    UCHAR player;
     vpad_xusb_notification_t notification;
 };
 
@@ -282,18 +284,34 @@ static void vpad_vigem_rumble(vpad_t *pad, UCHAR large, UCHAR small)
     pad->os->playing = 1;
 }
 
+static void vpad_vigem_player(vpad_t *pad, UCHAR player)
+{
+    vpad_event_t event;
+
+    if (pad->os->player_known && pad->os->player == player)
+        return;
+    memset(&event, 0, sizeof(event));
+    event.kind = VPAD_EV_PLAYER;
+    event.value = player;
+    vpad_queue_push(pad, &event);
+    pad->os->player = player;
+    pad->os->player_known = 1;
+}
+
 int vpad_os_poll(vpad_t *pad)
 {
     struct vpad_os *os = pad->os;
     DWORD done = 0;
     BOOL ok;
 
-    if (!os->pending || VPAD_QUEUE_LEN - pad->queue_len < 2 || !HasOverlappedIoCompleted(&os->ov))
+    if (!os->pending || VPAD_QUEUE_LEN - pad->queue_len < 3 || !HasOverlappedIoCompleted(&os->ov))
         return VPAD_OK;
     os->pending = 0;
     ok = GetOverlappedResult(os->bus, &os->ov, &done, FALSE);
-    if (ok)
+    if (ok) {
         vpad_vigem_rumble(pad, os->notification.large_motor, os->notification.small_motor);
+        vpad_vigem_player(pad, os->notification.led_number);
+    }
     vpad_vigem_request(pad);
     return ok ? VPAD_OK : VPAD_ERR_IO;
 }

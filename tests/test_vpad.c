@@ -66,6 +66,7 @@ static void test_bad_args(void)
     CHECK(vpad_send(NULL) == VPAD_ERR_ARG);
     CHECK(vpad_neutral(NULL) == VPAD_ERR_ARG);
     CHECK(vpad_next_event(NULL, &event) == VPAD_ERR_ARG);
+    CHECK(vpad_wait(NULL, 0) == VPAD_ERR_ARG);
     CHECK(vpad_handle(NULL) == VPAD_NO_HANDLE);
     CHECK(vpad_backend() != NULL);
     CHECK(strcmp(vpad_strerror(VPAD_ERR_NODEVICE), vpad_strerror(-1)) != 0);
@@ -346,7 +347,6 @@ static void *game_thread(void *arg)
 
 static int collect_events(vpad_t *pad, vpad_event_t *events, int want)
 {
-    struct pollfd pfd = {vpad_handle(pad), POLLIN, 0};
     int count = 0;
     int status;
 
@@ -357,7 +357,7 @@ static int collect_events(vpad_t *pad, vpad_event_t *events, int want)
             continue;
         }
         CHECK(status == VPAD_ERR_AGAIN);
-        if (poll(&pfd, 1, 5000) <= 0)
+        if (vpad_wait(pad, 5000) != VPAD_OK)
             break;
     }
     return count;
@@ -376,6 +376,9 @@ static void test_force_feedback(void)
     snprintf(name, sizeof(name), "vpad test ff %ld", (long)getpid());
     CHECK(vpad_create(VPAD_XBOX360, name, 0, 0, NULL, NULL, NULL, &pad) == VPAD_OK);
     CHECK(vpad_next_event(pad, &extra) == VPAD_ERR_AGAIN);
+    CHECK(vpad_wait(pad, -2) == VPAD_ERR_ARG);
+    CHECK(vpad_wait(pad, 0) == VPAD_ERR_AGAIN);
+    CHECK(vpad_wait(pad, 50) == VPAD_ERR_AGAIN);
     memset(&game, 0, sizeof(game));
     game.name = name;
     CHECK(pthread_create(&thread, NULL, game_thread, &game) == 0);

@@ -3,6 +3,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(_WIN32)
+#include <windows.h>
+#else
+#include <errno.h>
+#include <poll.h>
+#endif
+
 typedef char vpad_effect_size_check[sizeof(vpad_effect_t) == 22 ? 1 : -1];
 typedef char vpad_event_size_check[sizeof(vpad_event_t) == 32 ? 1 : -1];
 
@@ -161,6 +168,44 @@ int vpad_next_event(vpad_t *pad, vpad_event_t *out_event)
     pad->queue_head = (pad->queue_head + 1) % VPAD_QUEUE_LEN;
     pad->queue_len--;
     return VPAD_OK;
+}
+
+static int vpad_wait_handle(vpad_handle_t handle, long timeout_ms)
+{
+#if defined(_WIN32)
+    DWORD r = WaitForSingleObject(handle, timeout_ms < 0 ? INFINITE : (DWORD)timeout_ms);
+
+    if (r == WAIT_OBJECT_0)
+        return VPAD_OK;
+    return r == WAIT_TIMEOUT ? VPAD_ERR_AGAIN : VPAD_ERR_IO;
+#else
+    struct pollfd pfd;
+    int r;
+
+    pfd.fd = handle;
+    pfd.events = POLLIN;
+    do {
+        pfd.revents = 0;
+        r = poll(&pfd, 1, timeout_ms > 2000000000L ? 2000000000 : (int)timeout_ms);
+    } while (r < 0 && errno == EINTR);
+    if (r > 0)
+        return VPAD_OK;
+    return r == 0 ? VPAD_ERR_AGAIN : VPAD_ERR_IO;
+#endif
+}
+
+int vpad_wait(vpad_t *pad, long timeout_ms)
+{
+    vpad_handle_t handle;
+
+    if (pad == NULL || timeout_ms < -1)
+        return VPAD_ERR_ARG;
+    if (pad->queue_len > 0)
+        return VPAD_OK;
+    handle = vpad_os_handle(pad);
+    if (handle == VPAD_NO_HANDLE)
+        return VPAD_ERR_UNSUPPORTED;
+    return vpad_wait_handle(handle, timeout_ms);
 }
 
 vpad_handle_t vpad_handle(const vpad_t *pad)

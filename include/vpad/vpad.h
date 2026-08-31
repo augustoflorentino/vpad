@@ -72,6 +72,7 @@ extern "C" {
 #define VPAD_EV_ERASE 2
 #define VPAD_EV_PLAY 3
 #define VPAD_EV_GAIN 4
+#define VPAD_EV_PLAYER 5
 
 #if defined(_WIN32)
 typedef void *vpad_handle_t;
@@ -115,6 +116,7 @@ VPAD_API int vpad_set_axis(vpad_t *pad, int axis, int32_t value);
 VPAD_API int vpad_send(vpad_t *pad);
 VPAD_API int vpad_neutral(vpad_t *pad);
 VPAD_API int vpad_next_event(vpad_t *pad, vpad_event_t *out_event);
+VPAD_API int vpad_wait(vpad_t *pad, long timeout_ms);
 VPAD_API vpad_handle_t vpad_handle(const vpad_t *pad);
 VPAD_API const char *vpad_backend(void);
 VPAD_API const char *vpad_strerror(int status);
