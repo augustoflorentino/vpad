@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use vpad in research or a publication, cite it as follows."
+type: software
+title: vpad
+abstract: "C99 virtual gamepad with force feedback on Linux, FreeBSD, macOS and Windows, through one API"
+authors:
+  - family-names: Florentino
+    given-names: Augusto
+license: MIT
+repository-code: "https://github.com/augustoflorentino/vpad"
+keywords:
+  - c
+  - c99
+  - library
+  - virtual-gamepad
+  - force-feedback
+  - uinput
+  - vigembus
+  - cross-platform
