@@ -10,7 +10,11 @@
 #include <poll.h>
 #endif
 
-typedef char vpad_effect_size_check[sizeof(vpad_effect_t) == 22 ? 1 : -1];
+typedef char vpad_effect_size_check[sizeof(vpad_effect_t) == 24 ? 1 : -1];
+typedef char vpad_effect_layout_check[offsetof(vpad_effect_t, size) == 0 && offsetof(vpad_effect_t, type) == 2 &&
+                                              offsetof(vpad_effect_t, fade_level) == 22
+                                          ? 1
+                                          : -1];
 typedef char vpad_event_size_check[sizeof(vpad_event_t) == 32 ? 1 : -1];
 
 static const char *const vpad_default_names[] = {"Microsoft X-Box 360 pad", "vpad Virtual Gamepad"};
@@ -46,7 +50,10 @@ int vpad_queue_space(const vpad_t *pad)
 
 void vpad_queue_push(vpad_t *pad, const vpad_event_t *event)
 {
-    pad->queue[(pad->queue_head + pad->queue_len) % VPAD_QUEUE_LEN] = *event;
+    vpad_event_t *slot = &pad->queue[(pad->queue_head + pad->queue_len) % VPAD_QUEUE_LEN];
+
+    *slot = *event;
+    slot->effect.size = sizeof(vpad_effect_t);
     pad->queue_len++;
 }
 

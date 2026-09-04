@@ -83,6 +83,7 @@ typedef int vpad_handle_t;
 #endif
 
 typedef struct vpad_effect {
+    uint16_t size;
     uint16_t type;
     uint16_t strong;
     uint16_t weak;

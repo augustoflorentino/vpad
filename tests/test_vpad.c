@@ -386,6 +386,7 @@ static void test_force_feedback(void)
     CHECK(pthread_join(thread, NULL) == 0);
     CHECK(game.ok && n == 9);
     CHECK(events[0].kind == VPAD_EV_UPLOAD && events[0].slot == game.rumble_id);
+    CHECK(events[0].effect.size == sizeof(vpad_effect_t) && events[4].effect.size == 24);
     CHECK(events[0].effect.type == VPAD_RUMBLE && events[0].effect.strong == 0x8000);
     CHECK(events[0].effect.weak == 0x4000 && events[0].effect.length_ms == 500 && events[0].effect.delay_ms == 20);
     CHECK(events[1].kind == VPAD_EV_PLAY && events[1].slot == game.rumble_id && events[1].value == 3);
