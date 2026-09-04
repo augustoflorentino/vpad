@@ -13,7 +13,8 @@ game's rumble requests back to you, on Linux, FreeBSD, macOS and Windows.
   its sync, and nothing is written when nothing changed
 - force feedback as events: effect upload, erase, play/stop and gain, already answered to the
   game; `vpad_effect_t` has the same fields, order and type values as `pff_effect_t` from
-  padff, so effects go straight into it
+  padff 1.0, so effects go straight into it. Its first field, `size`, is always
+  `sizeof(vpad_effect_t)`, which is what padff checks
 - `vpad_neutral` releases every button and centers every axis in one report
 
 ## Requirements
