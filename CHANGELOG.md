@@ -4,6 +4,15 @@ Each release lists what changed, what updating means for existing code, and ever
 
 ## Unreleased
 
+## 0.3.0 - 2026-09-03
+
+New features; no change needed in existing code.
+
+- `vpad_wait`: wait for events with a timeout, without the per-system code around
+  `vpad_handle`
+- Windows: `VPAD_EV_PLAYER` reports the player slot the host assigned to the pad (the ring
+  light of a real Xbox 360 pad), once at the start and on each change
+
 ## 0.1.1 - 2026-08-31
 
 Bug fixes; no change needed in existing code.
