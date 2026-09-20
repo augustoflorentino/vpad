@@ -4,6 +4,16 @@ Each release lists what changed, what updating means for existing code, and ever
 
 ## Unreleased
 
+## 1.0.3 - 2026-09-20
+
+Bug fix; no change needed in existing code.
+
+- Windows: when ViGEmBus refused the rumble notification request at once (instead of failing
+  it later), the request was never made again: rumble stopped for good, `vpad_next_event`
+  kept returning `VPAD_ERR_AGAIN` and a wait on `vpad_handle` or `vpad_wait` never woke. Now
+  the request is retried on each `vpad_next_event`, a failure is reported as `VPAD_ERR_IO`,
+  and the handle is signaled so a waiting caller sees it
+
 ## 1.0.0 - 2026-09-20
 
 The interface is stable from here on: incompatible changes only in a new major version, with
