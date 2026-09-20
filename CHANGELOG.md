@@ -4,6 +4,25 @@ Each release lists what changed, what updating means for existing code, and ever
 
 ## Unreleased
 
+## 1.0.0 - 2026-09-20
+
+The interface is stable from here on: incompatible changes only in a new major version, with
+the soname bumped. The ABI baseline is recorded in `abi/vpad.abi`.
+
+- `vpad_effect_t` starts with `uint16_t size`, always `sizeof(vpad_effect_t)` (24). padff
+  1.0.0 added the same field to `pff_effect_t`, and the documented `memcpy` from one to the
+  other only works while the two layouts match; with `size`, padff can also accept effects from
+  newer versions that add fields at the end
+- soname `libvpad.so.1`
+
+### Upgrading
+
+- with padff 1.0.0 the `memcpy` into `pff_effect_t` keeps working unchanged; padff 0.x and
+  vpad 1.x no longer share a layout, so update both together
+- code that builds a `vpad_effect_t` itself (in tests, for instance) sets `size` to
+  `sizeof(vpad_effect_t)`
+- rebuild; programs linked to `libvpad.so.0` keep using the old library
+
 ## 0.3.0 - 2026-09-03
 
 New features; no change needed in existing code.
