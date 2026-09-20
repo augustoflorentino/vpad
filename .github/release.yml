@@ -1,0 +1,10 @@
+changelog:
+  categories:
+    - title: Backends
+      labels: [backend]
+    - title: API
+      labels: [api]
+    - title: Fixes
+      labels: [bug]
+    - title: Other
+      labels: ["*"]

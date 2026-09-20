@@ -1,0 +1,42 @@
+name: Bug report
+description: The pad, its input or its force feedback misbehaves
+labels: [bug]
+body:
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform and backend
+      options:
+        - Linux (uinput)
+        - FreeBSD (uinput)
+        - macOS (IOHIDUserDevice)
+        - Windows (ViGEmBus)
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: vpad version and system version
+      placeholder: vpad 3.3.0, Windows 11 24H2, ViGEmBus 1.22
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Pad kind
+      options:
+        - VPAD_XBOX360
+        - VPAD_DS4
+        - VPAD_GENERIC
+  - type: input
+    id: reader
+    attributes:
+      label: Game or program reading the pad
+      placeholder: SDL3 testcontroller, Steam, a game
+  - type: textarea
+    id: what
+    attributes:
+      label: What happens
+      description: What you sent, what the game saw, the events vpad returned
+    validations:
+      required: true
