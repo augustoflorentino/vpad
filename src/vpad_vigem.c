@@ -186,6 +186,8 @@ static void vpad_vigem_request(vpad_t *pad)
     ok = DeviceIoControl(os->bus, VPAD_IOCTL_XUSB_NOTIFICATION, &os->notification, sizeof(os->notification),
                          &os->notification, sizeof(os->notification), NULL, &os->ov);
     os->pending = ok || GetLastError() == ERROR_IO_PENDING;
+    if (!os->pending)
+        SetEvent(os->ov.hEvent);
 }
 
 int vpad_os_open(vpad_t *pad)
@@ -304,7 +306,11 @@ int vpad_os_poll(vpad_t *pad)
     DWORD done = 0;
     BOOL ok;
 
-    if (!os->pending || VPAD_QUEUE_LEN - pad->queue_len < 3 || !HasOverlappedIoCompleted(&os->ov))
+    if (!os->pending)
+        vpad_vigem_request(pad);
+    if (!os->pending)
+        return VPAD_ERR_IO;
+    if (VPAD_QUEUE_LEN - pad->queue_len < 3 || !HasOverlappedIoCompleted(&os->ov))
         return VPAD_OK;
     os->pending = 0;
     ok = GetOverlappedResult(os->bus, &os->ov, &done, FALSE);
