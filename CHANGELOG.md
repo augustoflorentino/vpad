@@ -4,6 +4,44 @@ Each release lists what changed, what updating means for existing code, and ever
 
 ## Unreleased
 
+## 2.0.0 - 2026-10-11
+
+Incompatible change: `vpad_create` takes a configuration.
+
+- `vpad_create(const vpad_config_t *config, vpad_t **out_pad)` replaces the eight-argument
+  form. The struct starts with `size`, so later options can be added at the end without
+  another major version; `vpad_config_init` fills it
+- `VPAD_NO_FF`: a pad without force feedback. Before, every pad offered it, and on Linux a
+  game's rumble upload blocked until the program called `vpad_next_event`, which a program
+  that only sends input never does
+- soname `libvpad.so.2`
+
+### Upgrading
+
+Replace
+
+```c
+vpad_create(kind, name, vendor, product, alloc_fn, free_fn, alloc_ctx, &pad);
+```
+
+with
+
+```c
+vpad_config_t config;
+
+vpad_config_init(&config, kind);
+config.name = name;
+config.vendor = vendor;
+config.product = product;
+config.alloc_fn = alloc_fn;
+config.free_fn = free_fn;
+config.alloc_ctx = alloc_ctx;
+vpad_create(&config, &pad);
+```
+
+leaving out the fields that were `NULL` or `0`. Rebuild; programs linked to `libvpad.so.1`
+keep using the old library.
+
 ## 1.0.3 - 2026-09-20
 
 Bug fix; no change needed in existing code.

@@ -1,9 +1,10 @@
-<abi-corpus version='3.0' architecture='elf-amd-x86_64' soname='libvpad.so.1' tracking-non-reachable-types='yes'>
+<abi-corpus version='3.0' architecture='elf-amd-x86_64' soname='libvpad.so.2' tracking-non-reachable-types='yes'>
   <elf-needed>
     <dependency name='libc.so.6'/>
   </elf-needed>
   <elf-function-symbols>
     <elf-symbol name='vpad_backend' type='func-type' binding='global-binding' visibility='default-visibility' is-defined='yes'/>
+    <elf-symbol name='vpad_config_init' type='func-type' binding='global-binding' visibility='default-visibility' is-defined='yes'/>
     <elf-symbol name='vpad_create' type='func-type' binding='global-binding' visibility='default-visibility' is-defined='yes'/>
     <elf-symbol name='vpad_destroy' type='func-type' binding='global-binding' visibility='default-visibility' is-defined='yes'/>
     <elf-symbol name='vpad_handle' type='func-type' binding='global-binding' visibility='default-visibility' is-defined='yes'/>
@@ -26,228 +27,264 @@
     </array-type-def>
     <qualified-type-def type-id='type-id-6' const='yes' hash='45ae2830e476ce98' id='type-id-8'/>
     <pointer-type-def type-id='type-id-8' size-in-bits='64' hash='83a5509e2ae27d75' id='type-id-9'/>
-    <qualified-type-def type-id='type-id-10' const='yes' hash='1655f04070aaf3db' id='type-id-11'/>
-    <pointer-type-def type-id='type-id-11' size-in-bits='64' hash='68eb1a7a499791c7' id='type-id-12'/>
-    <function-type size-in-bits='64' hash='1d2a0e161d00b727' id='type-id-13'>
-      <parameter type-id='type-id-14'/>
+    <qualified-type-def type-id='type-id-10' const='yes' hash='e6683d982a6fded7' id='type-id-11'/>
+    <pointer-type-def type-id='type-id-11' size-in-bits='64' hash='2dedce986814f049' id='type-id-12'/>
+    <qualified-type-def type-id='type-id-13' const='yes' hash='33ffbcd641b56c86' id='type-id-14'/>
+    <pointer-type-def type-id='type-id-14' size-in-bits='64' hash='68eb1a7a499791c7' id='type-id-15'/>
+    <function-type size-in-bits='64' hash='1d2a0e161d00b727' id='type-id-16'>
+      <parameter type-id='type-id-17'/>
       <return type-id='type-id-9'/>
     </function-type>
-    <function-type size-in-bits='64' hash='2c8e1a2425f8663b' id='type-id-15'>
+    <function-type size-in-bits='64' hash='2c8e1a2425f8663b' id='type-id-18'>
       <return type-id='type-id-9'/>
     </function-type>
-    <function-type size-in-bits='64' hash='0fb0028b64023e6a' id='type-id-16'>
-      <parameter type-id='type-id-14'/>
-      <parameter type-id='type-id-9'/>
-      <parameter type-id='type-id-17'/>
-      <parameter type-id='type-id-17'/>
-      <parameter type-id='type-id-18'/>
-      <parameter type-id='type-id-19'/>
-      <parameter type-id='type-id-20'/>
-      <parameter type-id='type-id-21'/>
-      <return type-id='type-id-14'/>
-    </function-type>
-    <function-type size-in-bits='64' hash='8bed30894d4fe742' id='type-id-22'>
-      <parameter type-id='type-id-23'/>
-      <return type-id='type-id-14'/>
-    </function-type>
-    <function-type size-in-bits='64' hash='ba3b286665c03708' id='type-id-24'>
-      <parameter type-id='type-id-23'/>
-      <parameter type-id='type-id-14'/>
-      <parameter type-id='type-id-14'/>
-      <return type-id='type-id-14'/>
-    </function-type>
-    <function-type size-in-bits='64' hash='561f0407cf03893c' id='type-id-25'>
-      <parameter type-id='type-id-23'/>
-      <parameter type-id='type-id-14'/>
-      <parameter type-id='type-id-26'/>
-      <return type-id='type-id-14'/>
-    </function-type>
-    <function-type size-in-bits='64' hash='835923385f843f43' id='type-id-27'>
-      <parameter type-id='type-id-23'/>
-      <parameter type-id='type-id-28'/>
-      <return type-id='type-id-14'/>
-    </function-type>
-    <function-type size-in-bits='64' hash='539da95135c8376d' id='type-id-29'>
-      <parameter type-id='type-id-23'/>
-      <parameter type-id='type-id-30'/>
-      <return type-id='type-id-14'/>
-    </function-type>
-    <function-type size-in-bits='64' hash='edf938d82551349a' id='type-id-31'>
-      <parameter type-id='type-id-20'/>
-      <parameter type-id='type-id-20'/>
-      <return type-id='type-id-32'/>
-    </function-type>
-    <function-type size-in-bits='64' hash='3940008abdc549cb' id='type-id-33'>
-      <parameter type-id='type-id-23'/>
-      <return type-id='type-id-32'/>
-    </function-type>
-    <function-type size-in-bits='64' hash='dbc09a9870c76547' id='type-id-34'>
-      <parameter type-id='type-id-20'/>
-      <parameter type-id='type-id-35'/>
-      <return type-id='type-id-20'/>
-    </function-type>
-    <function-type size-in-bits='64' hash='3e4ca09c05154a0f' id='type-id-36'>
+    <function-type size-in-bits='64' hash='29d230cdb01293e2' id='type-id-19'>
       <parameter type-id='type-id-12'/>
-      <return type-id='type-id-37'/>
+      <parameter type-id='type-id-20'/>
+      <return type-id='type-id-17'/>
     </function-type>
-    <type-decl name='int' size-in-bits='32' hash='09d17c08f594edc7' id='type-id-14'/>
-    <array-type-def dimensions='1' type-id='type-id-26' size-in-bits='192' hash='6cbfaad1ae1f19bd' id='type-id-38'>
+    <function-type size-in-bits='64' hash='8bed30894d4fe742' id='type-id-21'>
+      <parameter type-id='type-id-22'/>
+      <return type-id='type-id-17'/>
+    </function-type>
+    <function-type size-in-bits='64' hash='ba3b286665c03708' id='type-id-23'>
+      <parameter type-id='type-id-22'/>
+      <parameter type-id='type-id-17'/>
+      <parameter type-id='type-id-17'/>
+      <return type-id='type-id-17'/>
+    </function-type>
+    <function-type size-in-bits='64' hash='561f0407cf03893c' id='type-id-24'>
+      <parameter type-id='type-id-22'/>
+      <parameter type-id='type-id-17'/>
+      <parameter type-id='type-id-25'/>
+      <return type-id='type-id-17'/>
+    </function-type>
+    <function-type size-in-bits='64' hash='835923385f843f43' id='type-id-26'>
+      <parameter type-id='type-id-22'/>
+      <parameter type-id='type-id-27'/>
+      <return type-id='type-id-17'/>
+    </function-type>
+    <function-type size-in-bits='64' hash='539da95135c8376d' id='type-id-28'>
+      <parameter type-id='type-id-22'/>
+      <parameter type-id='type-id-29'/>
+      <return type-id='type-id-17'/>
+    </function-type>
+    <function-type size-in-bits='64' hash='edf938d82551349a' id='type-id-30'>
+      <parameter type-id='type-id-31'/>
+      <parameter type-id='type-id-31'/>
+      <return type-id='type-id-32'/>
+    </function-type>
+    <function-type size-in-bits='64' hash='40747d2f110d7e73' id='type-id-33'>
+      <parameter type-id='type-id-34'/>
+      <parameter type-id='type-id-17'/>
+      <return type-id='type-id-32'/>
+    </function-type>
+    <function-type size-in-bits='64' hash='3940008abdc549cb' id='type-id-35'>
+      <parameter type-id='type-id-22'/>
+      <return type-id='type-id-32'/>
+    </function-type>
+    <function-type size-in-bits='64' hash='dbc09a9870c76547' id='type-id-36'>
+      <parameter type-id='type-id-31'/>
+      <parameter type-id='type-id-37'/>
+      <return type-id='type-id-31'/>
+    </function-type>
+    <function-type size-in-bits='64' hash='3e4ca09c05154a0f' id='type-id-38'>
+      <parameter type-id='type-id-15'/>
+      <return type-id='type-id-39'/>
+    </function-type>
+    <type-decl name='int' size-in-bits='32' hash='09d17c08f594edc7' id='type-id-17'/>
+    <array-type-def dimensions='1' type-id='type-id-25' size-in-bits='192' hash='6cbfaad1ae1f19bd' id='type-id-40'>
       <subrange length='6' lower-bound='0' upper-bound='5' type-id='type-id-1' size-in-bits='64' is-anonymous='yes' hash='1c0e592c7ffbdbf5' id='type-id-4'/>
     </array-type-def>
-    <type-decl name='long int' size-in-bits='64' hash='8aa1e1a2ab2c2d3e' id='type-id-28'/>
-    <type-decl name='short int' size-in-bits='16' hash='2e5e87528799cdbb' id='type-id-39'/>
-    <class-decl name='vpad' is-struct='yes' visibility='default' size-in-bits='9856' hash='1ad1129c1181b289' id='type-id-40'>
+    <type-decl name='long int' size-in-bits='64' hash='8aa1e1a2ab2c2d3e' id='type-id-27'/>
+    <type-decl name='short int' size-in-bits='16' hash='2e5e87528799cdbb' id='type-id-41'/>
+    <class-decl name='vpad' is-struct='yes' visibility='default' size-in-bits='9920' hash='20d8d0cdf7523526' id='type-id-42'>
       <data-member access='public' layout-offset-in-bits='0'>
-        <var-decl name='mem' type-id='type-id-41' visibility='default'/>
+        <var-decl name='mem' type-id='type-id-43' visibility='default'/>
       </data-member>
       <data-member access='public' layout-offset-in-bits='192'>
-        <var-decl name='kind' type-id='type-id-14' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='224'>
-        <var-decl name='name' type-id='type-id-7' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='864'>
-        <var-decl name='vendor' type-id='type-id-17' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='880'>
-        <var-decl name='product' type-id='type-id-17' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='896'>
-        <var-decl name='buttons' type-id='type-id-42' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='1024'>
-        <var-decl name='axes' type-id='type-id-38' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='1216'>
-        <var-decl name='sent_buttons' type-id='type-id-42' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='1344'>
-        <var-decl name='sent_axes' type-id='type-id-38' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='1536'>
-        <var-decl name='queue' type-id='type-id-43' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='9728'>
-        <var-decl name='queue_head' type-id='type-id-44' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='9760'>
-        <var-decl name='queue_len' type-id='type-id-44' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='9792'>
-        <var-decl name='os' type-id='type-id-45' visibility='default'/>
-      </data-member>
-    </class-decl>
-    <class-decl name='vpad_effect' is-struct='yes' visibility='default' size-in-bits='192' hash='3621732f59ff1efe' id='type-id-46'>
-      <data-member access='public' layout-offset-in-bits='0'>
-        <var-decl name='size' type-id='type-id-17' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='16'>
-        <var-decl name='type' type-id='type-id-17' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='32'>
-        <var-decl name='strong' type-id='type-id-17' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='48'>
-        <var-decl name='weak' type-id='type-id-17' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='64'>
-        <var-decl name='level' type-id='type-id-47' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='80'>
-        <var-decl name='level_end' type-id='type-id-47' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='96'>
-        <var-decl name='delay_ms' type-id='type-id-17' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='112'>
-        <var-decl name='length_ms' type-id='type-id-17' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='128'>
-        <var-decl name='attack_ms' type-id='type-id-17' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='144'>
-        <var-decl name='attack_level' type-id='type-id-17' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='160'>
-        <var-decl name='fade_ms' type-id='type-id-17' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='176'>
-        <var-decl name='fade_level' type-id='type-id-17' visibility='default'/>
-      </data-member>
-    </class-decl>
-    <class-decl name='vpad_event' is-struct='yes' visibility='default' size-in-bits='256' hash='c2bf3615bfe7efc9' id='type-id-48'>
-      <data-member access='public' layout-offset-in-bits='0'>
         <var-decl name='kind' type-id='type-id-17' visibility='default'/>
       </data-member>
+      <data-member access='public' layout-offset-in-bits='224'>
+        <var-decl name='flags' type-id='type-id-44' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='256'>
+        <var-decl name='name' type-id='type-id-7' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='896'>
+        <var-decl name='vendor' type-id='type-id-45' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='912'>
+        <var-decl name='product' type-id='type-id-45' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='928'>
+        <var-decl name='buttons' type-id='type-id-46' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='1056'>
+        <var-decl name='axes' type-id='type-id-40' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='1248'>
+        <var-decl name='sent_buttons' type-id='type-id-46' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='1376'>
+        <var-decl name='sent_axes' type-id='type-id-40' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='1568'>
+        <var-decl name='queue' type-id='type-id-47' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='9760'>
+        <var-decl name='queue_head' type-id='type-id-48' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='9792'>
+        <var-decl name='queue_len' type-id='type-id-48' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='9856'>
+        <var-decl name='os' type-id='type-id-49' visibility='default'/>
+      </data-member>
+    </class-decl>
+    <class-decl name='vpad_config' is-struct='yes' visibility='default' size-in-bits='384' hash='5cfa8979702a6296' id='type-id-50'>
+      <data-member access='public' layout-offset-in-bits='0'>
+        <var-decl name='size' type-id='type-id-45' visibility='default'/>
+      </data-member>
       <data-member access='public' layout-offset-in-bits='16'>
-        <var-decl name='slot' type-id='type-id-17' visibility='default'/>
+        <var-decl name='kind' type-id='type-id-45' visibility='default'/>
       </data-member>
       <data-member access='public' layout-offset-in-bits='32'>
-        <var-decl name='value' type-id='type-id-49' visibility='default'/>
+        <var-decl name='vendor' type-id='type-id-45' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='48'>
+        <var-decl name='product' type-id='type-id-45' visibility='default'/>
       </data-member>
       <data-member access='public' layout-offset-in-bits='64'>
-        <var-decl name='effect' type-id='type-id-50' visibility='default'/>
-      </data-member>
-    </class-decl>
-    <class-decl name='vpad_mem' is-struct='yes' visibility='default' size-in-bits='192' hash='dd7f04c65dcb7052' id='type-id-41'>
-      <data-member access='public' layout-offset-in-bits='0'>
-        <var-decl name='alloc_fn' type-id='type-id-18' visibility='default'/>
-      </data-member>
-      <data-member access='public' layout-offset-in-bits='64'>
-        <var-decl name='free_fn' type-id='type-id-19' visibility='default'/>
+        <var-decl name='flags' type-id='type-id-44' visibility='default'/>
       </data-member>
       <data-member access='public' layout-offset-in-bits='128'>
-        <var-decl name='alloc_ctx' type-id='type-id-20' visibility='default'/>
+        <var-decl name='name' type-id='type-id-9' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='192'>
+        <var-decl name='alloc_fn' type-id='type-id-51' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='256'>
+        <var-decl name='free_fn' type-id='type-id-52' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='320'>
+        <var-decl name='alloc_ctx' type-id='type-id-31' visibility='default'/>
       </data-member>
     </class-decl>
-    <class-decl name='vpad_os' is-struct='yes' visibility='default' is-declaration-only='yes' hash='702947b57e9103e9' id='type-id-51'/>
-    <typedef-decl name='__int16_t' type-id='type-id-39' size-in-bits='16' hash='bfcf8c53a7e22b05' id='type-id-52'/>
-    <typedef-decl name='__int32_t' type-id='type-id-14' size-in-bits='32' hash='f2b82e49c8af56cd' id='type-id-53'/>
-    <typedef-decl name='__uint16_t' type-id='type-id-54' size-in-bits='16' hash='012767b19cd3b7f4' id='type-id-55'/>
-    <typedef-decl name='__uint32_t' type-id='type-id-44' size-in-bits='32' hash='01b265816e53dd71' id='type-id-56'/>
-    <typedef-decl name='__uint8_t' type-id='type-id-57' size-in-bits='8' hash='7948234ee9eb1041' id='type-id-58'/>
-    <typedef-decl name='int16_t' type-id='type-id-52' size-in-bits='16' hash='bfcf8c53a7e22b05' id='type-id-47'/>
-    <typedef-decl name='int32_t' type-id='type-id-53' size-in-bits='32' hash='f2b82e49c8af56cd' id='type-id-26'/>
-    <typedef-decl name='size_t' type-id='type-id-1' size-in-bits='64' hash='8b230c0ebd12548b' id='type-id-35'/>
-    <typedef-decl name='uint16_t' type-id='type-id-55' size-in-bits='16' hash='012767b19cd3b7f4' id='type-id-17'/>
-    <typedef-decl name='uint32_t' type-id='type-id-56' size-in-bits='32' hash='01b265816e53dd71' id='type-id-49'/>
-    <typedef-decl name='uint8_t' type-id='type-id-58' size-in-bits='8' hash='7948234ee9eb1041' id='type-id-59'/>
-    <typedef-decl name='vpad_alloc_fn' type-id='type-id-60' size-in-bits='64' hash='77dcac2fc426a312' id='type-id-18'/>
-    <typedef-decl name='vpad_effect_t' type-id='type-id-46' size-in-bits='192' hash='5df4b48854e6f09d' id='type-id-50'/>
-    <typedef-decl name='vpad_event_t' type-id='type-id-48' size-in-bits='256' hash='6156528dff909a5f' id='type-id-61'/>
-    <typedef-decl name='vpad_free_fn' type-id='type-id-62' size-in-bits='64' hash='21d4fa73e6c6f741' id='type-id-19'/>
-    <typedef-decl name='vpad_handle_t' type-id='type-id-14' size-in-bits='32' hash='f2b82e49c8af56cd' id='type-id-37'/>
-    <typedef-decl name='vpad_t' type-id='type-id-40' size-in-bits='9856' hash='87b62879fd5cdf27' id='type-id-10'/>
-    <array-type-def dimensions='1' type-id='type-id-59' size-in-bits='120' hash='cd000cef4918b176' id='type-id-42'>
+    <class-decl name='vpad_effect' is-struct='yes' visibility='default' size-in-bits='192' hash='3621732f59ff1efe' id='type-id-53'>
+      <data-member access='public' layout-offset-in-bits='0'>
+        <var-decl name='size' type-id='type-id-45' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='16'>
+        <var-decl name='type' type-id='type-id-45' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='32'>
+        <var-decl name='strong' type-id='type-id-45' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='48'>
+        <var-decl name='weak' type-id='type-id-45' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='64'>
+        <var-decl name='level' type-id='type-id-54' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='80'>
+        <var-decl name='level_end' type-id='type-id-54' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='96'>
+        <var-decl name='delay_ms' type-id='type-id-45' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='112'>
+        <var-decl name='length_ms' type-id='type-id-45' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='128'>
+        <var-decl name='attack_ms' type-id='type-id-45' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='144'>
+        <var-decl name='attack_level' type-id='type-id-45' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='160'>
+        <var-decl name='fade_ms' type-id='type-id-45' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='176'>
+        <var-decl name='fade_level' type-id='type-id-45' visibility='default'/>
+      </data-member>
+    </class-decl>
+    <class-decl name='vpad_event' is-struct='yes' visibility='default' size-in-bits='256' hash='c2bf3615bfe7efc9' id='type-id-55'>
+      <data-member access='public' layout-offset-in-bits='0'>
+        <var-decl name='kind' type-id='type-id-45' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='16'>
+        <var-decl name='slot' type-id='type-id-45' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='32'>
+        <var-decl name='value' type-id='type-id-44' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='64'>
+        <var-decl name='effect' type-id='type-id-56' visibility='default'/>
+      </data-member>
+    </class-decl>
+    <class-decl name='vpad_mem' is-struct='yes' visibility='default' size-in-bits='192' hash='dd7f04c65dcb7052' id='type-id-43'>
+      <data-member access='public' layout-offset-in-bits='0'>
+        <var-decl name='alloc_fn' type-id='type-id-51' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='64'>
+        <var-decl name='free_fn' type-id='type-id-52' visibility='default'/>
+      </data-member>
+      <data-member access='public' layout-offset-in-bits='128'>
+        <var-decl name='alloc_ctx' type-id='type-id-31' visibility='default'/>
+      </data-member>
+    </class-decl>
+    <class-decl name='vpad_os' is-struct='yes' visibility='default' is-declaration-only='yes' hash='702947b57e9103e9' id='type-id-57'/>
+    <typedef-decl name='__int16_t' type-id='type-id-41' size-in-bits='16' hash='bfcf8c53a7e22b05' id='type-id-58'/>
+    <typedef-decl name='__int32_t' type-id='type-id-17' size-in-bits='32' hash='f2b82e49c8af56cd' id='type-id-59'/>
+    <typedef-decl name='__uint16_t' type-id='type-id-60' size-in-bits='16' hash='012767b19cd3b7f4' id='type-id-61'/>
+    <typedef-decl name='__uint32_t' type-id='type-id-48' size-in-bits='32' hash='01b265816e53dd71' id='type-id-62'/>
+    <typedef-decl name='__uint8_t' type-id='type-id-63' size-in-bits='8' hash='7948234ee9eb1041' id='type-id-64'/>
+    <typedef-decl name='int16_t' type-id='type-id-58' size-in-bits='16' hash='bfcf8c53a7e22b05' id='type-id-54'/>
+    <typedef-decl name='int32_t' type-id='type-id-59' size-in-bits='32' hash='f2b82e49c8af56cd' id='type-id-25'/>
+    <typedef-decl name='size_t' type-id='type-id-1' size-in-bits='64' hash='8b230c0ebd12548b' id='type-id-37'/>
+    <typedef-decl name='uint16_t' type-id='type-id-61' size-in-bits='16' hash='012767b19cd3b7f4' id='type-id-45'/>
+    <typedef-decl name='uint32_t' type-id='type-id-62' size-in-bits='32' hash='01b265816e53dd71' id='type-id-44'/>
+    <typedef-decl name='uint8_t' type-id='type-id-64' size-in-bits='8' hash='7948234ee9eb1041' id='type-id-65'/>
+    <typedef-decl name='vpad_alloc_fn' type-id='type-id-66' size-in-bits='64' hash='77dcac2fc426a312' id='type-id-51'/>
+    <typedef-decl name='vpad_config_t' type-id='type-id-50' size-in-bits='384' hash='f818453ca0542349' id='type-id-10'/>
+    <typedef-decl name='vpad_effect_t' type-id='type-id-53' size-in-bits='192' hash='5df4b48854e6f09d' id='type-id-56'/>
+    <typedef-decl name='vpad_event_t' type-id='type-id-55' size-in-bits='256' hash='6156528dff909a5f' id='type-id-67'/>
+    <typedef-decl name='vpad_free_fn' type-id='type-id-68' size-in-bits='64' hash='21d4fa73e6c6f741' id='type-id-52'/>
+    <typedef-decl name='vpad_handle_t' type-id='type-id-17' size-in-bits='32' hash='f2b82e49c8af56cd' id='type-id-39'/>
+    <typedef-decl name='vpad_t' type-id='type-id-42' size-in-bits='9920' hash='2b569ea0454057f7' id='type-id-13'/>
+    <array-type-def dimensions='1' type-id='type-id-65' size-in-bits='120' hash='cd000cef4918b176' id='type-id-46'>
       <subrange length='15' lower-bound='0' upper-bound='14' type-id='type-id-1' size-in-bits='64' is-anonymous='yes' hash='853801d50611c72b' id='type-id-2'/>
     </array-type-def>
-    <type-decl name='unsigned char' size-in-bits='8' hash='6ebac62b3366db68' id='type-id-57'/>
-    <type-decl name='unsigned int' size-in-bits='32' hash='e66b43f97c38e87a' id='type-id-44'/>
+    <type-decl name='unsigned char' size-in-bits='8' hash='6ebac62b3366db68' id='type-id-63'/>
+    <type-decl name='unsigned int' size-in-bits='32' hash='e66b43f97c38e87a' id='type-id-48'/>
     <type-decl name='unsigned long int' size-in-bits='64' hash='da551c1631705dfe' id='type-id-1'/>
-    <type-decl name='unsigned short int' size-in-bits='16' hash='e3133321c12b1361' id='type-id-54'/>
+    <type-decl name='unsigned short int' size-in-bits='16' hash='e3133321c12b1361' id='type-id-60'/>
     <type-decl name='void' hash='8dcbc64750c3d4e3' id='type-id-32'/>
-    <pointer-type-def type-id='type-id-31' size-in-bits='64' hash='c559852600f1c7c8' id='type-id-62'/>
-    <pointer-type-def type-id='type-id-32' hash='19e246ce75ee6a42' id='type-id-20'/>
-    <pointer-type-def type-id='type-id-34' size-in-bits='64' hash='2390ef35ddf7f554' id='type-id-60'/>
-    <pointer-type-def type-id='type-id-61' size-in-bits='64' hash='88c5b045b011a05a' id='type-id-30'/>
-    <array-type-def dimensions='1' type-id='type-id-61' size-in-bits='8192' hash='2a25a86a896089b8' id='type-id-43'>
+    <pointer-type-def type-id='type-id-30' size-in-bits='64' hash='c559852600f1c7c8' id='type-id-68'/>
+    <pointer-type-def type-id='type-id-32' hash='19e246ce75ee6a42' id='type-id-31'/>
+    <pointer-type-def type-id='type-id-36' size-in-bits='64' hash='2390ef35ddf7f554' id='type-id-66'/>
+    <pointer-type-def type-id='type-id-10' size-in-bits='64' hash='5f5bf8e36765e30b' id='type-id-34'/>
+    <pointer-type-def type-id='type-id-67' size-in-bits='64' hash='88c5b045b011a05a' id='type-id-29'/>
+    <array-type-def dimensions='1' type-id='type-id-67' size-in-bits='8192' hash='2a25a86a896089b8' id='type-id-47'>
       <subrange length='32' lower-bound='0' upper-bound='31' type-id='type-id-1' size-in-bits='64' is-anonymous='yes' hash='99f823ef025a9d75' id='type-id-3'/>
     </array-type-def>
-    <pointer-type-def type-id='type-id-51' size-in-bits='64' hash='c1f212ab9432eb4b' id='type-id-45'/>
-    <pointer-type-def type-id='type-id-10' size-in-bits='64' hash='dffe7aed739c9c2d' id='type-id-23'/>
-    <pointer-type-def type-id='type-id-23' size-in-bits='64' hash='9239a0547fb438e1' id='type-id-21'/>
+    <pointer-type-def type-id='type-id-57' size-in-bits='64' hash='c1f212ab9432eb4b' id='type-id-49'/>
+    <pointer-type-def type-id='type-id-13' size-in-bits='64' hash='dffe7aed739c9c2d' id='type-id-22'/>
+    <pointer-type-def type-id='type-id-22' size-in-bits='64' hash='9239a0547fb438e1' id='type-id-20'/>
   </abi-types>
   <abi-instr address-size='64' path='src/vpad.c' language='LANG_C99'>
-      <function-decl name='vpad_backend' type-id='type-id-15' mangled-name='vpad_backend' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_backend'/>
-      <function-decl name='vpad_strerror' type-id='type-id-13' mangled-name='vpad_strerror' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_strerror'/>
-      <function-decl name='vpad_create' type-id='type-id-16' mangled-name='vpad_create' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_create'/>
-      <function-decl name='vpad_neutral' type-id='type-id-22' mangled-name='vpad_neutral' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_neutral'/>
-      <function-decl name='vpad_next_event' type-id='type-id-29' mangled-name='vpad_next_event' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_next_event'/>
-      <function-decl name='vpad_send' type-id='type-id-22' mangled-name='vpad_send' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_send'/>
-      <function-decl name='vpad_set_axis' type-id='type-id-25' mangled-name='vpad_set_axis' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_set_axis'/>
-      <function-decl name='vpad_set_button' type-id='type-id-24' mangled-name='vpad_set_button' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_set_button'/>
-      <function-decl name='vpad_wait' type-id='type-id-27' mangled-name='vpad_wait' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_wait'/>
-      <function-decl name='vpad_destroy' type-id='type-id-33' mangled-name='vpad_destroy' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_destroy'/>
-      <function-decl name='vpad_handle' type-id='type-id-36' mangled-name='vpad_handle' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_handle'/>
+      <function-decl name='vpad_backend' type-id='type-id-18' mangled-name='vpad_backend' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_backend'/>
+      <function-decl name='vpad_strerror' type-id='type-id-16' mangled-name='vpad_strerror' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_strerror'/>
+      <function-decl name='vpad_create' type-id='type-id-19' mangled-name='vpad_create' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_create'/>
+      <function-decl name='vpad_neutral' type-id='type-id-21' mangled-name='vpad_neutral' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_neutral'/>
+      <function-decl name='vpad_next_event' type-id='type-id-28' mangled-name='vpad_next_event' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_next_event'/>
+      <function-decl name='vpad_send' type-id='type-id-21' mangled-name='vpad_send' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_send'/>
+      <function-decl name='vpad_set_axis' type-id='type-id-24' mangled-name='vpad_set_axis' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_set_axis'/>
+      <function-decl name='vpad_set_button' type-id='type-id-23' mangled-name='vpad_set_button' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_set_button'/>
+      <function-decl name='vpad_wait' type-id='type-id-26' mangled-name='vpad_wait' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_wait'/>
+      <function-decl name='vpad_config_init' type-id='type-id-33' mangled-name='vpad_config_init' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_config_init'/>
+      <function-decl name='vpad_destroy' type-id='type-id-35' mangled-name='vpad_destroy' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_destroy'/>
+      <function-decl name='vpad_handle' type-id='type-id-38' mangled-name='vpad_handle' visibility='default' binding='global' size-in-bits='64' elf-symbol-id='vpad_handle'/>
   </abi-instr>
 </abi-corpus>
