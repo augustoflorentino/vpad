@@ -3,11 +3,16 @@
 
 int main(void)
 {
+    vpad_config_t config;
     vpad_t *pad = NULL;
     vpad_event_t event;
     int status;
 
-    status = vpad_create(VPAD_GENERIC, "vpad single file", 0x1234, 0x5678, NULL, NULL, NULL, &pad);
+    vpad_config_init(&config, VPAD_GENERIC);
+    config.name = "vpad single file";
+    config.vendor = 0x1234;
+    config.product = 0x5678;
+    status = vpad_create(&config, &pad);
     if (status == VPAD_ERR_UNSUPPORTED || status == VPAD_ERR_NODEVICE || status == VPAD_ERR_ACCESS)
         return vpad_strerror(status) != NULL ? 0 : 1;
     if (status == VPAD_OK)

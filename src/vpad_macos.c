@@ -235,7 +235,7 @@ int vpad_os_poll(vpad_t *pad)
     uint8_t motors[2];
     ssize_t n;
 
-    while (VPAD_QUEUE_LEN - pad->queue_len >= 2) {
+    while (VPAD_QUEUE_LEN - pad->queue_len >= 2 || (pad->flags & VPAD_NO_FF)) {
         n = read(pad->os->pipe_fds[0], motors, sizeof(motors));
         if (n < 0 && errno == EINTR)
             continue;
@@ -243,7 +243,8 @@ int vpad_os_poll(vpad_t *pad)
             return VPAD_OK;
         if (n != (ssize_t)sizeof(motors))
             return VPAD_ERR_IO;
-        vpad_mac_rumble(pad, motors);
+        if (!(pad->flags & VPAD_NO_FF))
+            vpad_mac_rumble(pad, motors);
     }
     return VPAD_OK;
 }

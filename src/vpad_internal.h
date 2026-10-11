@@ -24,6 +24,7 @@ struct vpad_os;
 struct vpad {
     struct vpad_mem mem;
     int kind;
+    uint32_t flags;
     char name[VPAD_NAME_MAX];
     uint16_t vendor;
     uint16_t product;

@@ -82,7 +82,7 @@ static int vpad_enable_ff(int fd)
 #endif
 }
 
-static int vpad_enable(int fd)
+static int vpad_enable(const vpad_t *pad, int fd)
 {
     size_t i;
     int status = vpad_ioctl_int(fd, UI_SET_EVBIT, EV_KEY);
@@ -99,7 +99,7 @@ static int vpad_enable(int fd)
         status = vpad_abs_setup(fd, ABS_HAT0X, -1, 1, 0, 0);
     if (status == VPAD_OK)
         status = vpad_abs_setup(fd, ABS_HAT0Y, -1, 1, 0, 0);
-    if (status == VPAD_OK)
+    if (status == VPAD_OK && !(pad->flags & VPAD_NO_FF))
         status = vpad_enable_ff(fd);
     return status;
 }
@@ -115,7 +115,7 @@ static int vpad_setup(const vpad_t *pad, int fd)
     setup.id.version = 1;
     memcpy(setup.name, pad->name, strlen(pad->name));
 #if VPAD_HAVE_FF
-    setup.ff_effects_max = VPAD_FF_SLOTS;
+    setup.ff_effects_max = pad->flags & VPAD_NO_FF ? 0 : VPAD_FF_SLOTS;
 #endif
     if (ioctl(fd, UI_DEV_SETUP, &setup) != 0 || ioctl(fd, UI_DEV_CREATE) != 0)
         return vpad_errno_status(errno);
@@ -131,7 +131,7 @@ int vpad_os_open(vpad_t *pad)
     if (pad->os == NULL)
         return VPAD_ERR_NOMEM;
     fd = open("/dev/uinput", O_RDWR | O_NONBLOCK | O_CLOEXEC);
-    status = fd < 0 ? vpad_errno_status(errno) : vpad_enable(fd);
+    status = fd < 0 ? vpad_errno_status(errno) : vpad_enable(pad, fd);
     if (status == VPAD_OK)
         status = vpad_setup(pad, fd);
     if (status != VPAD_OK) {

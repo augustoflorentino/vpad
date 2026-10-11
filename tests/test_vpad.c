@@ -41,9 +41,40 @@ static void failing_free(void *ctx, void *ptr)
     free(ptr);
 }
 
+static int make_pad(int kind, const char *name, uint16_t vendor, uint16_t product, vpad_alloc_fn alloc_fn,
+                    vpad_free_fn free_fn, void *alloc_ctx, vpad_t **out_pad)
+{
+    vpad_config_t config;
+
+    vpad_config_init(&config, kind);
+    config.name = name;
+    config.vendor = vendor;
+    config.product = product;
+    config.alloc_fn = alloc_fn;
+    config.free_fn = free_fn;
+    config.alloc_ctx = alloc_ctx;
+    return vpad_create(&config, out_pad);
+}
+
 static int device_unavailable(int status)
 {
     return status == VPAD_ERR_UNSUPPORTED || status == VPAD_ERR_NODEVICE || status == VPAD_ERR_ACCESS;
+}
+
+static void test_bad_config(void)
+{
+    vpad_config_t config;
+    vpad_t *pad = NULL;
+
+    vpad_config_init(NULL, VPAD_GENERIC);
+    vpad_config_init(&config, VPAD_GENERIC);
+    CHECK(config.size == sizeof(config) && config.kind == VPAD_GENERIC && config.flags == 0);
+    config.size = (uint16_t)(sizeof(config) - 8);
+    CHECK(vpad_create(&config, &pad) == VPAD_ERR_ARG);
+    vpad_config_init(&config, VPAD_GENERIC);
+    config.flags = 2;
+    CHECK(vpad_create(&config, &pad) == VPAD_ERR_ARG);
+    CHECK(pad == NULL);
 }
 
 static void test_bad_args(void)
@@ -54,13 +85,15 @@ static void test_bad_args(void)
 
     memset(long_name, 'n', sizeof(long_name) - 1);
     long_name[sizeof(long_name) - 1] = '\0';
-    CHECK(vpad_create(VPAD_XBOX360, NULL, 0, 0, NULL, NULL, NULL, NULL) == VPAD_ERR_ARG);
-    CHECK(vpad_create(7, NULL, 0, 0, NULL, NULL, NULL, &pad) == VPAD_ERR_ARG);
-    CHECK(vpad_create(VPAD_GENERIC, "", 0, 0, NULL, NULL, NULL, &pad) == VPAD_ERR_ARG);
-    CHECK(vpad_create(VPAD_GENERIC, long_name, 0, 0, NULL, NULL, NULL, &pad) == VPAD_ERR_ARG);
-    CHECK(vpad_create(VPAD_GENERIC, NULL, 0, 0, failing_alloc, NULL, NULL, &pad) == VPAD_ERR_ARG);
-    CHECK(vpad_create(VPAD_GENERIC, NULL, 0, 0, NULL, failing_free, NULL, &pad) == VPAD_ERR_ARG);
+    CHECK(make_pad(VPAD_XBOX360, NULL, 0, 0, NULL, NULL, NULL, NULL) == VPAD_ERR_ARG);
+    CHECK(make_pad(7, NULL, 0, 0, NULL, NULL, NULL, &pad) == VPAD_ERR_ARG);
+    CHECK(make_pad(VPAD_GENERIC, "", 0, 0, NULL, NULL, NULL, &pad) == VPAD_ERR_ARG);
+    CHECK(make_pad(VPAD_GENERIC, long_name, 0, 0, NULL, NULL, NULL, &pad) == VPAD_ERR_ARG);
+    CHECK(make_pad(VPAD_GENERIC, NULL, 0, 0, failing_alloc, NULL, NULL, &pad) == VPAD_ERR_ARG);
+    CHECK(make_pad(VPAD_GENERIC, NULL, 0, 0, NULL, failing_free, NULL, &pad) == VPAD_ERR_ARG);
+    CHECK(vpad_create(NULL, &pad) == VPAD_ERR_ARG);
     CHECK(pad == NULL);
+    test_bad_config();
     CHECK(vpad_set_button(NULL, VPAD_BTN_A, 1) == VPAD_ERR_ARG);
     CHECK(vpad_set_axis(NULL, VPAD_AXIS_LX, 0) == VPAD_ERR_ARG);
     CHECK(vpad_send(NULL) == VPAD_ERR_ARG);
@@ -223,21 +256,54 @@ static void test_identity(void)
     vpad_t *pad = NULL;
     int fd;
 
-    CHECK(vpad_create(VPAD_XBOX360, NULL, 0, 0, NULL, NULL, NULL, &pad) == VPAD_OK);
+    CHECK(make_pad(VPAD_XBOX360, NULL, 0, 0, NULL, NULL, NULL, &pad) == VPAD_OK);
     CHECK(strcmp(vpad_backend(), "uinput") == 0);
     vpad_destroy(pad);
     snprintf(name, sizeof(name), "vpad test 360 %ld", (long)getpid());
-    CHECK(vpad_create(VPAD_XBOX360, name, 0, 0, NULL, NULL, NULL, &pad) == VPAD_OK);
+    CHECK(make_pad(VPAD_XBOX360, name, 0, 0, NULL, NULL, NULL, &pad) == VPAD_OK);
     fd = open_node(name, O_RDONLY);
     CHECK(fd >= 0);
     check_identity(fd, name, 0x045e, 0x028e);
     close(fd);
     vpad_destroy(pad);
     snprintf(name, sizeof(name), "vpad test custom %ld", (long)getpid());
-    CHECK(vpad_create(VPAD_GENERIC, name, 0x1234, 0xabcd, NULL, NULL, NULL, &pad) == VPAD_OK);
+    CHECK(make_pad(VPAD_GENERIC, name, 0x1234, 0xabcd, NULL, NULL, NULL, &pad) == VPAD_OK);
     fd = open_node(name, O_RDONLY);
     CHECK(fd >= 0);
     check_identity(fd, name, 0x1234, 0xabcd);
+    close(fd);
+    vpad_destroy(pad);
+}
+
+static void test_no_ff(void)
+{
+    struct ff_effect effect;
+    unsigned char ff_bits[16];
+    vpad_config_t config;
+    vpad_event_t event;
+    char name[64];
+    vpad_t *pad = NULL;
+    int effects = -1;
+    int fd;
+
+    snprintf(name, sizeof(name), "vpad test noff %ld", (long)getpid());
+    vpad_config_init(&config, VPAD_XBOX360);
+    config.name = name;
+    config.flags = VPAD_NO_FF;
+    CHECK(vpad_create(&config, &pad) == VPAD_OK);
+    fd = open_node(name, O_RDWR);
+    CHECK(fd >= 0);
+    memset(ff_bits, 0, sizeof(ff_bits));
+    CHECK(ioctl(fd, EVIOCGBIT(EV_FF, sizeof(ff_bits)), ff_bits) >= 0);
+    CHECK(!BIT_SET(ff_bits, FF_RUMBLE));
+    CHECK(ioctl(fd, EVIOCGEFFECTS, &effects) == 0 && effects == 0);
+    memset(&effect, 0, sizeof(effect));
+    effect.type = FF_RUMBLE;
+    effect.id = -1;
+    effect.u.rumble.strong_magnitude = 0x8000;
+    CHECK(ioctl(fd, EVIOCSFF, &effect) < 0);
+    CHECK(vpad_next_event(pad, &event) == VPAD_ERR_AGAIN);
+    CHECK(vpad_set_button(pad, VPAD_BTN_A, 1) == VPAD_OK && vpad_send(pad) == VPAD_OK);
     close(fd);
     vpad_destroy(pad);
 }
@@ -251,7 +317,7 @@ static void test_reports(void)
     int n;
 
     snprintf(name, sizeof(name), "vpad test report %ld", (long)getpid());
-    CHECK(vpad_create(VPAD_XBOX360, name, 0, 0, NULL, NULL, NULL, &pad) == VPAD_OK);
+    CHECK(make_pad(VPAD_XBOX360, name, 0, 0, NULL, NULL, NULL, &pad) == VPAD_OK);
     fd = open_node(name, O_RDONLY | O_NONBLOCK);
     CHECK(fd >= 0);
     CHECK(vpad_set_button(pad, VPAD_BTN_A, 1) == VPAD_OK);
@@ -374,7 +440,7 @@ static void test_force_feedback(void)
     int n;
 
     snprintf(name, sizeof(name), "vpad test ff %ld", (long)getpid());
-    CHECK(vpad_create(VPAD_XBOX360, name, 0, 0, NULL, NULL, NULL, &pad) == VPAD_OK);
+    CHECK(make_pad(VPAD_XBOX360, name, 0, 0, NULL, NULL, NULL, &pad) == VPAD_OK);
     CHECK(vpad_next_event(pad, &extra) == VPAD_ERR_AGAIN);
     CHECK(vpad_wait(pad, -2) == VPAD_ERR_ARG);
     CHECK(vpad_wait(pad, 0) == VPAD_ERR_AGAIN);
@@ -415,7 +481,7 @@ static void test_alloc_failure(void)
         int status;
 
         pad = NULL;
-        status = vpad_create(VPAD_GENERIC, NULL, 0, 0, failing_alloc, failing_free, &fa, &pad);
+        status = make_pad(VPAD_GENERIC, NULL, 0, 0, failing_alloc, failing_free, &fa, &pad);
         if (status == VPAD_OK) {
             CHECK(vpad_send(pad) == VPAD_OK);
             vpad_destroy(pad);
@@ -436,7 +502,7 @@ int main(void)
     int status;
 
     test_bad_args();
-    status = vpad_create(VPAD_XBOX360, NULL, 0, 0, NULL, NULL, NULL, &pad);
+    status = make_pad(VPAD_XBOX360, NULL, 0, 0, NULL, NULL, NULL, &pad);
     vpad_destroy(pad);
     if (device_unavailable(status)) {
         printf("skipping device tests (%s backend): %s\n", vpad_backend(), vpad_strerror(status));
@@ -445,6 +511,7 @@ int main(void)
     CHECK(status == VPAD_OK);
 #if defined(__linux__)
     test_identity();
+    test_no_ff();
     test_reports();
     test_force_feedback();
     test_alloc_failure();

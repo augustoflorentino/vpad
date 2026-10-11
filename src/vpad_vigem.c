@@ -211,7 +211,8 @@ int vpad_os_open(vpad_t *pad)
         pad->os = NULL;
         return status;
     }
-    vpad_vigem_request(pad);
+    if (!(pad->flags & VPAD_NO_FF))
+        vpad_vigem_request(pad);
     return VPAD_OK;
 }
 
@@ -306,6 +307,8 @@ int vpad_os_poll(vpad_t *pad)
     DWORD done = 0;
     BOOL ok;
 
+    if (pad->flags & VPAD_NO_FF)
+        return VPAD_OK;
     if (!os->pending)
         vpad_vigem_request(pad);
     if (!os->pending)

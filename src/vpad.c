@@ -69,42 +69,60 @@ void vpad_mark_sent(vpad_t *pad)
     memcpy(pad->sent_axes, pad->axes, sizeof(pad->axes));
 }
 
-static int vpad_check_identity(int kind, const char *name)
+static int vpad_check_config(const vpad_config_t *config)
 {
-    if (kind != VPAD_XBOX360 && kind != VPAD_GENERIC)
+    if (config->size != sizeof(vpad_config_t))
         return VPAD_ERR_ARG;
-    if (name != NULL && (name[0] == '\0' || strlen(name) >= VPAD_NAME_MAX))
+    if (config->kind != VPAD_XBOX360 && config->kind != VPAD_GENERIC)
+        return VPAD_ERR_ARG;
+    if ((config->flags & ~VPAD_NO_FF) != 0 || (config->alloc_fn == NULL) != (config->free_fn == NULL))
+        return VPAD_ERR_ARG;
+    if (config->name != NULL && (config->name[0] == '\0' || strlen(config->name) >= VPAD_NAME_MAX))
         return VPAD_ERR_ARG;
     return VPAD_OK;
 }
 
-int vpad_create(int kind, const char *name, uint16_t vendor, uint16_t product, vpad_alloc_fn alloc_fn,
-                vpad_free_fn free_fn, void *alloc_ctx, vpad_t **out_pad)
+void vpad_config_init(vpad_config_t *config, int kind)
 {
+    if (config == NULL)
+        return;
+    memset(config, 0, sizeof(*config));
+    config->size = sizeof(*config);
+    config->kind = (uint16_t)kind;
+}
+
+static void vpad_set_identity(vpad_t *pad, const vpad_config_t *config)
+{
+    int custom = config->vendor || config->product;
+
+    pad->kind = config->kind;
+    pad->flags = config->flags;
+    strcpy(pad->name, config->name ? config->name : vpad_default_names[pad->kind]);
+    pad->vendor = custom ? config->vendor : vpad_default_ids[pad->kind][0];
+    pad->product = custom ? config->product : vpad_default_ids[pad->kind][1];
+}
+
+int vpad_create(const vpad_config_t *config, vpad_t **out_pad)
+{
+    struct vpad_mem mem;
     vpad_t *pad;
     int status;
 
-    if (out_pad == NULL || (alloc_fn == NULL) != (free_fn == NULL))
+    if (out_pad == NULL || config == NULL)
         return VPAD_ERR_ARG;
     *out_pad = NULL;
-    status = vpad_check_identity(kind, name);
+    status = vpad_check_config(config);
     if (status != VPAD_OK)
         return status;
-    if (alloc_fn == NULL) {
-        alloc_fn = vpad_default_alloc;
-        free_fn = vpad_default_free;
-    }
-    pad = alloc_fn(alloc_ctx, sizeof(*pad));
+    mem.alloc_fn = config->alloc_fn ? config->alloc_fn : vpad_default_alloc;
+    mem.free_fn = config->alloc_fn ? config->free_fn : vpad_default_free;
+    mem.alloc_ctx = config->alloc_ctx;
+    pad = vpad_mem_alloc(&mem, sizeof(*pad));
     if (pad == NULL)
         return VPAD_ERR_NOMEM;
     memset(pad, 0, sizeof(*pad));
-    pad->mem.alloc_fn = alloc_fn;
-    pad->mem.free_fn = free_fn;
-    pad->mem.alloc_ctx = alloc_ctx;
-    pad->kind = kind;
-    strcpy(pad->name, name ? name : vpad_default_names[kind]);
-    pad->vendor = vendor || product ? vendor : vpad_default_ids[kind][0];
-    pad->product = vendor || product ? product : vpad_default_ids[kind][1];
+    pad->mem = mem;
+    vpad_set_identity(pad, config);
     status = vpad_os_open(pad);
     if (status != VPAD_OK) {
         vpad_mem_free(&pad->mem, pad);

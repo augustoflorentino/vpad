@@ -109,8 +109,22 @@ typedef struct vpad vpad_t;
 typedef void *(*vpad_alloc_fn)(void *ctx, size_t size);
 typedef void (*vpad_free_fn)(void *ctx, void *ptr);
 
-VPAD_API int vpad_create(int kind, const char *name, uint16_t vendor, uint16_t product, vpad_alloc_fn alloc_fn,
-                         vpad_free_fn free_fn, void *alloc_ctx, vpad_t **out_pad);
+#define VPAD_NO_FF 1u
+
+typedef struct vpad_config {
+    uint16_t size;
+    uint16_t kind;
+    uint16_t vendor;
+    uint16_t product;
+    uint32_t flags;
+    const char *name;
+    vpad_alloc_fn alloc_fn;
+    vpad_free_fn free_fn;
+    void *alloc_ctx;
+} vpad_config_t;
+
+VPAD_API void vpad_config_init(vpad_config_t *config, int kind);
+VPAD_API int vpad_create(const vpad_config_t *config, vpad_t **out_pad);
 VPAD_API void vpad_destroy(vpad_t *pad);
 VPAD_API int vpad_set_button(vpad_t *pad, int button, int pressed);
 VPAD_API int vpad_set_axis(vpad_t *pad, int axis, int32_t value);
