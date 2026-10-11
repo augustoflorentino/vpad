@@ -4,11 +4,13 @@
 
 int main(void)
 {
+    vpad_config_t config;
     vpad_t *pad = NULL;
     int status;
     int i;
 
-    status = vpad_create(VPAD_XBOX360, NULL, 0, 0, NULL, NULL, NULL, &pad);
+    vpad_config_init(&config, VPAD_XBOX360);
+    status = vpad_create(&config, &pad);
     for (i = 0; i < 100 && status == VPAD_OK; i++) {
         vpad_set_button(pad, VPAD_BTN_A, i % 2);
         vpad_set_button(pad, VPAD_BTN_DPAD_LEFT, i % 3 == 0);

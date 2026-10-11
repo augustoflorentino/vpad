@@ -65,11 +65,13 @@ Windows and the `IOKit` and `CoreFoundation` frameworks on macOS.
 ## Usage
 
 ```c
+vpad_config_t config;
 vpad_t *pad = NULL;
 vpad_event_t event;
 int status;
 
-status = vpad_create(VPAD_XBOX360, NULL, 0, 0, NULL, NULL, NULL, &pad);
+vpad_config_init(&config, VPAD_XBOX360);
+status = vpad_create(&config, &pad);
 if (status != VPAD_OK) {
     fprintf(stderr, "%s: %s\n", vpad_backend(), vpad_strerror(status));
     return 1;
@@ -115,12 +117,21 @@ calling it while the pad exists. See [`examples/basic.c`](examples/basic.c) and
 Effect values follow padff: magnitudes 0 to 65535, signed levels -32768 to 32767, envelope
 levels 0 to 65535 (the Linux 0 to 32767 scaled up, full to full), times in milliseconds.
 
+`vpad_config_init` fills `size` and the kind (`VPAD_XBOX360` or `VPAD_GENERIC`) and zeroes
+the rest; then set what you need:
+
+- `name`: device name, up to 79 bytes; `NULL` keeps the default for the kind
+- `vendor`, `product`: USB ids; both `0` keep the default for the kind
+- `flags`: `VPAD_NO_FF` makes a pad without force feedback. Games then see no rumble support
+  and get an error at once when they try, instead of waiting on Linux for the
+  `vpad_next_event` an input-only program never calls
+- `alloc_fn`, `free_fn`, `alloc_ctx`: your allocator, or `NULL` for `malloc`/`free`
+
 Conventions:
 
 - every function that can fail returns `VPAD_OK` or an error code; `vpad_strerror` describes it
 - what `vpad_create` returns is released only by `vpad_destroy`, which accepts `NULL` and
   removes the device
-- pass your own allocator to `vpad_create`, or `NULL` for `malloc`/`free`
 - a pad is used from one thread at a time
 
 ## Limits

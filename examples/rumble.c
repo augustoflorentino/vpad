@@ -30,11 +30,13 @@ static void print_event(const vpad_event_t *event)
 
 int main(void)
 {
+    vpad_config_t config;
     vpad_t *pad = NULL;
     vpad_event_t event;
     int status;
 
-    status = vpad_create(VPAD_XBOX360, NULL, 0, 0, NULL, NULL, NULL, &pad);
+    vpad_config_init(&config, VPAD_XBOX360);
+    status = vpad_create(&config, &pad);
     if (status == VPAD_OK)
         printf("virtual pad ready (%s); start a game and make it rumble\n", vpad_backend());
     while (status == VPAD_OK || status == VPAD_ERR_AGAIN) {
