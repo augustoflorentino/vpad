@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(vpad VERSION 2.0.0 DESCRIPTION "Virtual gamepad with force feedback: one API over uinput, IOHIDUserDevice and ViGEmBus" LANGUAGES C)
+project(vpad VERSION 2.1.0 DESCRIPTION "Virtual gamepad with force feedback: one API over uinput, IOHIDUserDevice and ViGEmBus" LANGUAGES C)
 
 option(VPAD_BUILD_TESTS "Build tests" OFF)
 option(VPAD_BUILD_EXAMPLES "Build examples" OFF)

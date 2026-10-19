@@ -4,6 +4,15 @@ Each release lists what changed, what updating means for existing code, and ever
 
 ## Unreleased
 
+## 2.1.0 - 2026-10-19
+
+New feature; no change needed in existing code.
+
+- `VPAD_DS4`: a DualShock 4 on uinput, laid out like the kernel's hid-playstation driver shows
+  a real one, so games and SDL that expect a PlayStation pad pick the right prompts and
+  mapping. Other backends return `VPAD_ERR_UNSUPPORTED` for it until ViGEm's DS4 target is
+  tested on Windows
+
 ## 2.0.0 - 2026-10-11
 
 Incompatible change: `vpad_create` takes a configuration.
