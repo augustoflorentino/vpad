@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.gif binary
+docs/ export-ignore
+.github/ export-ignore

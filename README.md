@@ -17,6 +17,11 @@ game's rumble requests back to you, on Linux, FreeBSD, macOS and Windows.
   `sizeof(vpad_effect_t)`, which is what padff checks
 - `vpad_neutral` releases every button and centers every axis in one report
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/rumble-dark.gif">
+  <img src="docs/images/rumble-light.gif" alt="The rumble example printing the force feedback requests of an SDL3 game" width="674">
+</picture>
+
 ## Requirements
 
 | Platform | Backend | What it needs |
