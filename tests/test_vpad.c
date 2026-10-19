@@ -275,6 +275,55 @@ static void test_identity(void)
     vpad_destroy(pad);
 }
 
+static void test_ds4(void)
+{
+    struct input_event events[32];
+    struct input_absinfo info;
+    struct input_id id;
+    unsigned char keys[KEY_MAX / 8 + 1];
+    unsigned char ff_bits[16];
+    char name[64];
+    char got[256];
+    vpad_t *pad = NULL;
+    int fd;
+    int n;
+
+    snprintf(name, sizeof(name), "vpad test ds4 %ld", (long)getpid());
+    CHECK(make_pad(VPAD_DS4, name, 0, 0, NULL, NULL, NULL, &pad) == VPAD_OK);
+    fd = open_node(name, O_RDONLY | O_NONBLOCK);
+    CHECK(fd >= 0);
+    CHECK(ioctl(fd, EVIOCGNAME(sizeof(got)), got) > 0 && strcmp(got, name) == 0);
+    CHECK(ioctl(fd, EVIOCGID, &id) == 0 && id.vendor == 0x054c && id.product == 0x09cc);
+    memset(keys, 0, sizeof(keys));
+    memset(ff_bits, 0, sizeof(ff_bits));
+    CHECK(ioctl(fd, EVIOCGBIT(EV_KEY, sizeof(keys)), keys) >= 0);
+    CHECK(BIT_SET(keys, BTN_SOUTH) && BIT_SET(keys, BTN_EAST) && BIT_SET(keys, BTN_NORTH) && BIT_SET(keys, BTN_WEST));
+    CHECK(BIT_SET(keys, BTN_TL2) && BIT_SET(keys, BTN_TR2) && BIT_SET(keys, BTN_MODE));
+    CHECK(ioctl(fd, EVIOCGBIT(EV_FF, sizeof(ff_bits)), ff_bits) >= 0);
+    CHECK(BIT_SET(ff_bits, FF_RUMBLE) && BIT_SET(ff_bits, FF_GAIN) && !BIT_SET(ff_bits, FF_PERIODIC));
+    CHECK(ioctl(fd, EVIOCGABS(ABS_X), &info) == 0 && info.minimum == 0 && info.maximum == 255 && info.value == 128);
+    CHECK(ioctl(fd, EVIOCGABS(ABS_RZ), &info) == 0 && info.value == 0);
+    CHECK(vpad_set_button(pad, VPAD_BTN_X, 1) == VPAD_OK);
+    CHECK(vpad_set_button(pad, VPAD_BTN_Y, 1) == VPAD_OK);
+    CHECK(vpad_set_axis(pad, VPAD_AXIS_LX, -32768) == VPAD_OK);
+    CHECK(vpad_set_axis(pad, VPAD_AXIS_LY, 32767) == VPAD_OK);
+    CHECK(vpad_set_axis(pad, VPAD_AXIS_RX, 256) == VPAD_OK);
+    CHECK(vpad_set_axis(pad, VPAD_AXIS_RT, 255) == VPAD_OK);
+    CHECK(vpad_send(pad) == VPAD_OK);
+    n = read_report(fd, events, 32);
+    CHECK(n == 7);
+    CHECK(report_has(events, n, EV_KEY, BTN_WEST, 1) && report_has(events, n, EV_KEY, BTN_NORTH, 1));
+    CHECK(report_has(events, n, EV_ABS, ABS_X, 0) && report_has(events, n, EV_ABS, ABS_Y, 255));
+    CHECK(report_has(events, n, EV_ABS, ABS_RX, 129) && report_has(events, n, EV_ABS, ABS_RZ, 255));
+    CHECK(report_has(events, n, EV_KEY, BTN_TR2, 1));
+    CHECK(vpad_neutral(pad) == VPAD_OK);
+    n = read_report(fd, events, 32);
+    CHECK(report_has(events, n, EV_ABS, ABS_X, 128) && report_has(events, n, EV_ABS, ABS_Y, 128));
+    CHECK(report_has(events, n, EV_KEY, BTN_TR2, 0) && report_has(events, n, EV_ABS, ABS_RZ, 0));
+    close(fd);
+    vpad_destroy(pad);
+}
+
 static void test_no_ff(void)
 {
     struct ff_effect effect;
@@ -512,6 +561,7 @@ int main(void)
 #if defined(__linux__)
     test_identity();
     test_no_ff();
+    test_ds4();
     test_reports();
     test_force_feedback();
     test_alloc_failure();

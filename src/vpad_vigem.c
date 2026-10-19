@@ -194,6 +194,8 @@ int vpad_os_open(vpad_t *pad)
 {
     int status;
 
+    if (pad->kind == VPAD_DS4)
+        return VPAD_ERR_UNSUPPORTED;
     pad->os = vpad_mem_alloc(&pad->mem, sizeof(*pad->os));
     if (pad->os == NULL)
         return VPAD_ERR_NOMEM;

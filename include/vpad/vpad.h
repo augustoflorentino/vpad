@@ -37,6 +37,7 @@ extern "C" {
 
 #define VPAD_XBOX360 0
 #define VPAD_GENERIC 1
+#define VPAD_DS4 2
 
 #define VPAD_BTN_A 0
 #define VPAD_BTN_B 1

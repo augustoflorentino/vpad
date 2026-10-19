@@ -27,14 +27,30 @@ struct vpad_os {
     int fd;
 };
 
-static const uint16_t vpad_key_codes[] = {BTN_A,      BTN_B,     BTN_X,    BTN_Y,      BTN_TL,    BTN_TR,
-                                          BTN_SELECT, BTN_START, BTN_MODE, BTN_THUMBL, BTN_THUMBR};
+#define VPAD_KEYS 11
+
+static const uint16_t vpad_key_codes[VPAD_KEYS] = {BTN_A,      BTN_B,     BTN_X,    BTN_Y,      BTN_TL,    BTN_TR,
+                                                   BTN_SELECT, BTN_START, BTN_MODE, BTN_THUMBL, BTN_THUMBR};
+static const uint16_t vpad_ds4_codes[VPAD_KEYS] = {BTN_SOUTH,  BTN_EAST,  BTN_WEST, BTN_NORTH,  BTN_TL,    BTN_TR,
+                                                   BTN_SELECT, BTN_START, BTN_MODE, BTN_THUMBL, BTN_THUMBR};
 static const uint16_t vpad_abs_codes[VPAD_AXIS_COUNT] = {ABS_X, ABS_Y, ABS_RX, ABS_RY, ABS_Z, ABS_RZ};
 
 #if VPAD_HAVE_FF
-static const uint16_t vpad_ff_codes[] = {FF_RUMBLE,   FF_PERIODIC, FF_CONSTANT, FF_RAMP,     FF_SINE,
-                                         FF_SQUARE,   FF_TRIANGLE, FF_SAW_UP,   FF_SAW_DOWN, FF_GAIN};
+static const uint16_t vpad_ff_codes[] = {FF_RUMBLE,   FF_GAIN,     FF_PERIODIC, FF_CONSTANT, FF_RAMP,
+                                         FF_SINE,     FF_SQUARE,   FF_TRIANGLE, FF_SAW_UP,   FF_SAW_DOWN};
 #endif
+
+static const uint16_t *vpad_keys(const vpad_t *pad)
+{
+    return pad->kind == VPAD_DS4 ? vpad_ds4_codes : vpad_key_codes;
+}
+
+static int32_t vpad_axis_value(const vpad_t *pad, int axis, int32_t value)
+{
+    if (pad->kind != VPAD_DS4 || axis >= VPAD_AXIS_LT)
+        return value;
+    return (value + 32768) >> 8;
+}
 
 static int vpad_errno_status(int err)
 {
@@ -52,12 +68,13 @@ static int vpad_ioctl_int(int fd, unsigned long request, int value)
     return ioctl(fd, request, value) == 0 ? VPAD_OK : vpad_errno_status(errno);
 }
 
-static int vpad_abs_setup(int fd, uint16_t code, int min, int max, int fuzz, int flat)
+static int vpad_abs_setup(int fd, uint16_t code, int min, int max, int fuzz, int flat, int value)
 {
     struct uinput_abs_setup abs;
 
     memset(&abs, 0, sizeof(abs));
     abs.code = code;
+    abs.absinfo.value = value;
     abs.absinfo.minimum = min;
     abs.absinfo.maximum = max;
     abs.absinfo.fuzz = fuzz;
@@ -67,16 +84,18 @@ static int vpad_abs_setup(int fd, uint16_t code, int min, int max, int fuzz, int
     return VPAD_OK;
 }
 
-static int vpad_enable_ff(int fd)
+static int vpad_enable_ff(const vpad_t *pad, int fd)
 {
 #if VPAD_HAVE_FF
+    size_t count = pad->kind == VPAD_DS4 ? 2 : sizeof(vpad_ff_codes) / sizeof(vpad_ff_codes[0]);
     size_t i;
     int status = vpad_ioctl_int(fd, UI_SET_EVBIT, EV_FF);
 
-    for (i = 0; i < sizeof(vpad_ff_codes) / sizeof(vpad_ff_codes[0]) && status == VPAD_OK; i++)
+    for (i = 0; i < count && status == VPAD_OK; i++)
         status = vpad_ioctl_int(fd, UI_SET_FFBIT, vpad_ff_codes[i]);
     return status;
 #else
+    (void)pad;
     (void)fd;
     return VPAD_OK;
 #endif
@@ -89,18 +108,23 @@ static int vpad_enable(const vpad_t *pad, int fd)
 
     if (status == VPAD_OK)
         status = vpad_ioctl_int(fd, UI_SET_EVBIT, EV_ABS);
-    for (i = 0; i < sizeof(vpad_key_codes) / sizeof(vpad_key_codes[0]) && status == VPAD_OK; i++)
-        status = vpad_ioctl_int(fd, UI_SET_KEYBIT, vpad_key_codes[i]);
+    for (i = 0; i < VPAD_KEYS && status == VPAD_OK; i++)
+        status = vpad_ioctl_int(fd, UI_SET_KEYBIT, vpad_keys(pad)[i]);
+    if (status == VPAD_OK && pad->kind == VPAD_DS4)
+        status = vpad_ioctl_int(fd, UI_SET_KEYBIT, BTN_TL2);
+    if (status == VPAD_OK && pad->kind == VPAD_DS4)
+        status = vpad_ioctl_int(fd, UI_SET_KEYBIT, BTN_TR2);
     for (i = 0; i < 4 && status == VPAD_OK; i++)
-        status = vpad_abs_setup(fd, vpad_abs_codes[i], -32768, 32767, 16, 128);
+        status = pad->kind == VPAD_DS4 ? vpad_abs_setup(fd, vpad_abs_codes[i], 0, 255, 0, 0, 128)
+                                       : vpad_abs_setup(fd, vpad_abs_codes[i], -32768, 32767, 16, 128, 0);
     for (i = 4; i < VPAD_AXIS_COUNT && status == VPAD_OK; i++)
-        status = vpad_abs_setup(fd, vpad_abs_codes[i], 0, 255, 0, 0);
+        status = vpad_abs_setup(fd, vpad_abs_codes[i], 0, 255, 0, 0, 0);
     if (status == VPAD_OK)
-        status = vpad_abs_setup(fd, ABS_HAT0X, -1, 1, 0, 0);
+        status = vpad_abs_setup(fd, ABS_HAT0X, -1, 1, 0, 0, 0);
     if (status == VPAD_OK)
-        status = vpad_abs_setup(fd, ABS_HAT0Y, -1, 1, 0, 0);
+        status = vpad_abs_setup(fd, ABS_HAT0Y, -1, 1, 0, 0, 0);
     if (status == VPAD_OK && !(pad->flags & VPAD_NO_FF))
-        status = vpad_enable_ff(fd);
+        status = vpad_enable_ff(pad, fd);
     return status;
 }
 
@@ -170,9 +194,9 @@ static size_t vpad_collect(const vpad_t *pad, struct input_event *events)
     int x, y, old_x, old_y;
     size_t i;
 
-    for (i = 0; i < sizeof(vpad_key_codes) / sizeof(vpad_key_codes[0]); i++)
+    for (i = 0; i < VPAD_KEYS; i++)
         if (pad->buttons[i] != pad->sent_buttons[i])
-            vpad_add(events, &count, EV_KEY, vpad_key_codes[i], pad->buttons[i]);
+            vpad_add(events, &count, EV_KEY, vpad_keys(pad)[i], pad->buttons[i]);
     vpad_hat(pad->buttons, &x, &y);
     vpad_hat(pad->sent_buttons, &old_x, &old_y);
     if (x != old_x)
@@ -181,13 +205,17 @@ static size_t vpad_collect(const vpad_t *pad, struct input_event *events)
         vpad_add(events, &count, EV_ABS, ABS_HAT0Y, y);
     for (i = 0; i < VPAD_AXIS_COUNT; i++)
         if (pad->axes[i] != pad->sent_axes[i])
-            vpad_add(events, &count, EV_ABS, vpad_abs_codes[i], pad->axes[i]);
+            vpad_add(events, &count, EV_ABS, vpad_abs_codes[i], vpad_axis_value(pad, (int)i, pad->axes[i]));
+    if (pad->kind == VPAD_DS4 && (pad->axes[VPAD_AXIS_LT] > 0) != (pad->sent_axes[VPAD_AXIS_LT] > 0))
+        vpad_add(events, &count, EV_KEY, BTN_TL2, pad->axes[VPAD_AXIS_LT] > 0);
+    if (pad->kind == VPAD_DS4 && (pad->axes[VPAD_AXIS_RT] > 0) != (pad->sent_axes[VPAD_AXIS_RT] > 0))
+        vpad_add(events, &count, EV_KEY, BTN_TR2, pad->axes[VPAD_AXIS_RT] > 0);
     return count;
 }
 
 int vpad_os_send(vpad_t *pad)
 {
-    struct input_event events[VPAD_BTN_COUNT + VPAD_AXIS_COUNT + 1];
+    struct input_event events[VPAD_BTN_COUNT + VPAD_AXIS_COUNT + 3];
     size_t count = vpad_collect(pad, events);
     ssize_t n;
 

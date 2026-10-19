@@ -127,9 +127,12 @@ static void vpad_mac_release(vpad_t *pad, struct vpad_os *os)
 
 int vpad_os_open(vpad_t *pad)
 {
-    struct vpad_os *os = vpad_mem_alloc(&pad->mem, sizeof(*pad->os));
+    struct vpad_os *os;
     CFDictionaryRef properties;
 
+    if (pad->kind == VPAD_DS4)
+        return VPAD_ERR_UNSUPPORTED;
+    os = vpad_mem_alloc(&pad->mem, sizeof(*pad->os));
     if (os == NULL)
         return VPAD_ERR_NOMEM;
     memset(os, 0, sizeof(*os));

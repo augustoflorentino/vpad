@@ -17,8 +17,9 @@ typedef char vpad_effect_layout_check[offsetof(vpad_effect_t, size) == 0 && offs
                                           : -1];
 typedef char vpad_event_size_check[sizeof(vpad_event_t) == 32 ? 1 : -1];
 
-static const char *const vpad_default_names[] = {"Microsoft X-Box 360 pad", "vpad Virtual Gamepad"};
-static const uint16_t vpad_default_ids[][2] = {{0x045e, 0x028e}, {0x0000, 0x0000}};
+static const char *const vpad_default_names[] = {"Microsoft X-Box 360 pad", "vpad Virtual Gamepad",
+                                                 "Sony Interactive Entertainment Wireless Controller"};
+static const uint16_t vpad_default_ids[][2] = {{0x045e, 0x028e}, {0x0000, 0x0000}, {0x054c, 0x09cc}};
 
 static void *vpad_default_alloc(void *ctx, size_t size)
 {
@@ -73,7 +74,7 @@ static int vpad_check_config(const vpad_config_t *config)
 {
     if (config->size != sizeof(vpad_config_t))
         return VPAD_ERR_ARG;
-    if (config->kind != VPAD_XBOX360 && config->kind != VPAD_GENERIC)
+    if (config->kind != VPAD_XBOX360 && config->kind != VPAD_GENERIC && config->kind != VPAD_DS4)
         return VPAD_ERR_ARG;
     if ((config->flags & ~VPAD_NO_FF) != 0 || (config->alloc_fn == NULL) != (config->free_fn == NULL))
         return VPAD_ERR_ARG;
