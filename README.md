@@ -117,8 +117,18 @@ calling it while the pad exists. See [`examples/basic.c`](examples/basic.c) and
 Effect values follow padff: magnitudes 0 to 65535, signed levels -32768 to 32767, envelope
 levels 0 to 65535 (the Linux 0 to 32767 scaled up, full to full), times in milliseconds.
 
-`vpad_config_init` fills `size` and the kind (`VPAD_XBOX360` or `VPAD_GENERIC`) and zeroes
-the rest; then set what you need:
+`vpad_config_init` fills `size` and the kind and zeroes the rest; then set what you need.
+Kinds:
+
+- `VPAD_XBOX360`: Xbox 360 pad (045e:028e), on every backend
+- `VPAD_GENERIC`: the same controls under a neutral identity
+- `VPAD_DS4`: DualShock 4 (054c:09cc), Linux and FreeBSD only for now (`VPAD_ERR_UNSUPPORTED`
+  elsewhere). The pad looks like the kernel's own driver shows a real one: face buttons by
+  position (`VPAD_BTN_A` cross, `B` circle, `X` square, `Y` triangle), sticks 0 to 255
+  centered at 128 (the API keeps -32768 to 32767), digital L2/R2 pressed while the trigger is
+  above 0, and only rumble force feedback
+
+Fields:
 
 - `name`: device name, up to 79 bytes; `NULL` keeps the default for the kind
 - `vendor`, `product`: USB ids; both `0` keep the default for the kind
