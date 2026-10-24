@@ -40,7 +40,7 @@ int main(void)
     if (status == VPAD_OK)
         printf("virtual pad ready (%s); start a game and make it rumble\n", vpad_backend());
     while (status == VPAD_OK || status == VPAD_ERR_AGAIN) {
-        status = vpad_next_event(pad, &event);
+        status = vpad_next_event(pad, &event, sizeof(event));
         if (status == VPAD_OK)
             print_event(&event);
         else if (status == VPAD_ERR_AGAIN)

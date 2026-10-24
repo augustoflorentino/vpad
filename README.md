@@ -87,7 +87,7 @@ vpad_set_axis(pad, VPAD_AXIS_LX, -32768);
 vpad_set_axis(pad, VPAD_AXIS_RT, 255);
 vpad_send(pad);
 
-while (vpad_next_event(pad, &event) == VPAD_OK) {
+while (vpad_next_event(pad, &event, sizeof(event)) == VPAD_OK) {
     if (event.kind == VPAD_EV_UPLOAD) {
         pff_effect_t effect;
 
@@ -112,11 +112,14 @@ Events:
 
 New kinds may appear in minor versions; ignore the ones you do not know.
 
-`vpad_next_event` returns `VPAD_ERR_AGAIN` when nothing is waiting. `vpad_wait(pad, timeout_ms)`
-blocks until an event may be ready (`VPAD_OK`) or the time passes (`VPAD_ERR_AGAIN`); `-1` waits
-without limit. To wait together with other sources, use `vpad_handle` instead: a file
-descriptor to `poll` on POSIX, an event to `WaitForSingleObject` on Windows. On Linux a game's upload or erase blocks until you call `vpad_next_event`, so keep
-calling it while the pad exists. See [`examples/basic.c`](examples/basic.c) and
+`vpad_next_event` takes `sizeof(event)` and fills that much: a program built against an older
+3.x keeps working when later versions add fields at the end of the event or the effect (as
+padff may), and `event.effect.size` tells how much of the effect it received. It returns
+`VPAD_ERR_AGAIN` when nothing is waiting. `vpad_wait(pad, timeout_ms)` blocks until an event
+may be ready (`VPAD_OK`) or the time passes (`VPAD_ERR_AGAIN`); `-1` waits without limit. To
+wait together with other sources, use `vpad_handle` instead: a file descriptor to `poll` on
+POSIX, an event to `WaitForSingleObject` on Windows. On Linux a game's upload or erase blocks
+until you call `vpad_next_event`, so keep calling it while the pad exists. See [`examples/basic.c`](examples/basic.c) and
 [`examples/rumble.c`](examples/rumble.c).
 
 Effect values follow padff: magnitudes 0 to 65535, signed levels -32768 to 32767, envelope
