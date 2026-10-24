@@ -21,7 +21,7 @@ int main(void)
         status = vpad_send(pad);
     if (status == VPAD_OK)
         status = vpad_neutral(pad);
-    if (status == VPAD_OK && vpad_next_event(pad, &event) != VPAD_ERR_AGAIN)
+    if (status == VPAD_OK && vpad_next_event(pad, &event, sizeof(event)) != VPAD_ERR_AGAIN)
         status = VPAD_ERR_IO;
     vpad_destroy(pad);
     return status == VPAD_OK ? 0 : 1;

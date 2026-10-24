@@ -13,6 +13,7 @@
 #define VPAD_NAME_MAX 80
 #define VPAD_QUEUE_LEN 32
 #define VPAD_PATH_MAX 128
+#define VPAD_EVENT_BASE 32
 
 struct vpad_mem {
     vpad_alloc_fn alloc_fn;

@@ -177,11 +177,13 @@ int vpad_neutral(vpad_t *pad)
     return vpad_os_send(pad);
 }
 
-int vpad_next_event(vpad_t *pad, vpad_event_t *out_event)
+int vpad_next_event(vpad_t *pad, vpad_event_t *out_event, size_t event_size)
 {
+    size_t copy = event_size < sizeof(vpad_event_t) ? event_size : sizeof(vpad_event_t);
+    vpad_event_t event;
     int status;
 
-    if (pad == NULL || out_event == NULL)
+    if (pad == NULL || out_event == NULL || event_size < VPAD_EVENT_BASE)
         return VPAD_ERR_ARG;
     if (pad->queue_len == 0) {
         status = vpad_os_poll(pad);
@@ -190,7 +192,9 @@ int vpad_next_event(vpad_t *pad, vpad_event_t *out_event)
     }
     if (pad->queue_len == 0)
         return VPAD_ERR_AGAIN;
-    *out_event = pad->queue[pad->queue_head];
+    event = pad->queue[pad->queue_head];
+    event.effect.size = (uint16_t)(copy - offsetof(vpad_event_t, effect));
+    memcpy(out_event, &event, copy);
     pad->queue_head = (pad->queue_head + 1) % VPAD_QUEUE_LEN;
     pad->queue_len--;
     return VPAD_OK;

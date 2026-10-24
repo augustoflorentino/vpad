@@ -98,7 +98,7 @@ static void test_bad_args(void)
     CHECK(vpad_set_axis(NULL, VPAD_AXIS_LX, 0) == VPAD_ERR_ARG);
     CHECK(vpad_send(NULL) == VPAD_ERR_ARG);
     CHECK(vpad_neutral(NULL) == VPAD_ERR_ARG);
-    CHECK(vpad_next_event(NULL, &event) == VPAD_ERR_ARG);
+    CHECK(vpad_next_event(NULL, &event, sizeof(event)) == VPAD_ERR_ARG);
     CHECK(vpad_wait(NULL, 0) == VPAD_ERR_ARG);
     CHECK(vpad_syspath(NULL, NULL, 0, NULL) == VPAD_ERR_ARG);
     CHECK(vpad_handle(NULL) == VPAD_NO_HANDLE);
@@ -353,7 +353,7 @@ static void test_no_ff(void)
     effect.id = -1;
     effect.u.rumble.strong_magnitude = 0x8000;
     CHECK(ioctl(fd, EVIOCSFF, &effect) < 0);
-    CHECK(vpad_next_event(pad, &event) == VPAD_ERR_AGAIN);
+    CHECK(vpad_next_event(pad, &event, sizeof(event)) == VPAD_ERR_AGAIN);
     CHECK(vpad_set_button(pad, VPAD_BTN_A, 1) == VPAD_OK && vpad_send(pad) == VPAD_OK);
     close(fd);
     vpad_destroy(pad);
@@ -488,7 +488,7 @@ static int collect_events(vpad_t *pad, vpad_event_t *events, int want)
     int status;
 
     while (count < want) {
-        status = vpad_next_event(pad, &events[count]);
+        status = vpad_next_event(pad, &events[count], sizeof(events[count]));
         if (status == VPAD_OK) {
             count++;
             continue;
@@ -512,7 +512,8 @@ static void test_force_feedback(void)
 
     snprintf(name, sizeof(name), "vpad test ff %ld", (long)getpid());
     CHECK(make_pad(VPAD_XBOX360, name, 0, 0, NULL, NULL, NULL, &pad) == VPAD_OK);
-    CHECK(vpad_next_event(pad, &extra) == VPAD_ERR_AGAIN);
+    CHECK(vpad_next_event(pad, &extra, sizeof(extra)) == VPAD_ERR_AGAIN);
+    CHECK(vpad_next_event(pad, &extra, sizeof(extra) - 1) == VPAD_ERR_ARG);
     CHECK(vpad_wait(pad, -2) == VPAD_ERR_ARG);
     CHECK(vpad_wait(pad, 0) == VPAD_ERR_AGAIN);
     CHECK(vpad_wait(pad, 50) == VPAD_ERR_AGAIN);
@@ -524,6 +525,7 @@ static void test_force_feedback(void)
     CHECK(game.ok && n == 9);
     CHECK(events[0].kind == VPAD_EV_UPLOAD && events[0].slot == game.rumble_id);
     CHECK(events[0].effect.size == sizeof(vpad_effect_t) && events[4].effect.size == 24);
+    CHECK(events[8].effect.size == 24);
     CHECK(events[0].effect.type == VPAD_RUMBLE && events[0].effect.strong == 0x8000);
     CHECK(events[0].effect.weak == 0x4000 && events[0].effect.length_ms == 500 && events[0].effect.delay_ms == 20);
     CHECK(events[1].kind == VPAD_EV_PLAY && events[1].slot == game.rumble_id && events[1].value == 3);
@@ -538,7 +540,7 @@ static void test_force_feedback(void)
     CHECK(events[6].kind == VPAD_EV_ERASE && events[6].slot == game.rumble_id);
     CHECK(events[7].kind == VPAD_EV_PLAY && events[7].slot == game.periodic_id && events[7].value == 0);
     CHECK(events[8].kind == VPAD_EV_ERASE && events[8].slot == game.periodic_id);
-    CHECK(vpad_next_event(pad, &extra) == VPAD_ERR_AGAIN);
+    CHECK(vpad_next_event(pad, &extra, sizeof(extra)) == VPAD_ERR_AGAIN);
     vpad_destroy(pad);
 }
 
