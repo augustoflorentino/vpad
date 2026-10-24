@@ -2,7 +2,15 @@ name: ci
 
 on:
   push:
+    branches: [main]
   pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   install:
@@ -18,7 +26,7 @@ jobs:
     env:
       PREFIX: ${{ github.workspace }}/prefix
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=${{ matrix.shared }} -DCMAKE_INSTALL_PREFIX="$PREFIX"
       - run: cmake --build build --config Release
       - run: cmake --install build --config Release
@@ -37,7 +45,7 @@ jobs:
   sanitizers:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: cmake --preset dev
       - run: cmake --build build/dev
       - run: ctest --preset dev
@@ -45,7 +53,7 @@ jobs:
   msvc:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: cmake --preset msvc
       - run: cmake --build build/msvc --config Debug
       - run: ctest --test-dir build/msvc -C Debug --output-on-failure
@@ -53,7 +61,7 @@ jobs:
   abi:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: sudo apt-get update && sudo apt-get install -y abigail-tools
       - run: cmake --preset abi
       - run: cmake --build build/abi
@@ -63,7 +71,7 @@ jobs:
   single-file:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: scripts/amalgamate.sh
       - run: cc -std=c99 -Wall -Wextra -Wpedantic -Werror -Idist tests/single_file.c -o single && ./single
       - run: cc -std=c99 -Wall -Wextra -Wpedantic -Werror -DVPAD_STATIC -Idist tests/single_file.c -o single-static && ./single-static
@@ -71,7 +79,7 @@ jobs:
   fuzz:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: cmake --preset fuzz
       - run: cmake --build build/fuzz
       - run: ./build/fuzz/fuzz_events -max_total_time=60
