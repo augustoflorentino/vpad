@@ -4,6 +4,17 @@ Each release lists what changed, what updating means for existing code, and ever
 
 ## Unreleased
 
+## 2.2.0 - 2026-10-24
+
+New features; no change needed in existing code.
+
+- input and force feedback may run on two threads: one sends, the other reads events. That is
+  how a game's blocking rumble upload and a steady input loop usually live, and before it
+  needed a lock around every call. Tested under ThreadSanitizer with a real game thread
+- `vpad_syspath` (Linux): the sysfs directory of the pad, so a remapper can recognize and skip
+  its own virtual device instead of reading it back in a loop
+- `VPAD_ERR_RANGE`
+
 ## 2.1.0 - 2026-10-19
 
 New feature; no change needed in existing code.
