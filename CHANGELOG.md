@@ -4,6 +4,22 @@ Each release lists what changed, what updating means for existing code, and ever
 
 ## Unreleased
 
+## 3.0.0 - 2026-10-24
+
+Incompatible change: `vpad_next_event` takes the size of the event.
+
+- `vpad_next_event(pad, &event, sizeof(event))`. The effect inside the event has a `size`
+  field so that padff can add fields at the end, but the event itself had a fixed size: vpad
+  could not pass on any new effect field without breaking every caller again. Now it fills
+  only what the caller has room for and sets `effect.size` to match, so new fields can come
+  in minor versions
+- soname `libvpad.so.3`
+
+### Upgrading
+
+- add `sizeof(event)` as the third argument of each `vpad_next_event` call
+- rebuild; programs linked to `libvpad.so.2` keep using the old library
+
 ## 2.2.0 - 2026-10-24
 
 New features; no change needed in existing code.

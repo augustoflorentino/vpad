@@ -1,4 +1,4 @@
-<abi-corpus version='3.0' architecture='elf-amd-x86_64' soname='libvpad.so.2' tracking-non-reachable-types='yes'>
+<abi-corpus version='3.0' architecture='elf-amd-x86_64' soname='libvpad.so.3' tracking-non-reachable-types='yes'>
   <elf-needed>
     <dependency name='libc.so.6'/>
   </elf-needed>
@@ -73,9 +73,10 @@
       <parameter type-id='type-id-31'/>
       <return type-id='type-id-18'/>
     </function-type>
-    <function-type size-in-bits='64' hash='539da95135c8376d' id='type-id-32'>
+    <function-type size-in-bits='64' hash='b8c6915c0c6311a4' id='type-id-32'>
       <parameter type-id='type-id-26'/>
       <parameter type-id='type-id-33'/>
+      <parameter type-id='type-id-23'/>
       <return type-id='type-id-18'/>
     </function-type>
     <function-type size-in-bits='64' hash='edf938d82551349a' id='type-id-34'>
