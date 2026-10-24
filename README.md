@@ -147,7 +147,14 @@ Conventions:
 - every function that can fail returns `VPAD_OK` or an error code; `vpad_strerror` describes it
 - what `vpad_create` returns is released only by `vpad_destroy`, which accepts `NULL` and
   removes the device
-- a pad is used from one thread at a time
+- a pad is used from one thread at a time, with one exception: one thread may set and send
+  input (`vpad_set_button`, `vpad_set_axis`, `vpad_send`, `vpad_neutral`) while another reads
+  force feedback (`vpad_next_event`, `vpad_wait`); they touch separate state
+- `vpad_syspath` gives the sysfs directory of the pad on Linux, such as
+  `/sys/devices/virtual/input/input42`, whose `event*` entry is the pad's node. A remapper
+  that reads every input device uses it to skip its own pad. `buf` `NULL` with `buf_len` `0`
+  only reports the length; `VPAD_ERR_RANGE` means the buffer is too small. Other systems
+  return `VPAD_ERR_UNSUPPORTED`
 
 ## Limits
 
