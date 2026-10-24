@@ -3,6 +3,7 @@
 #if defined(__linux__) || defined(__FreeBSD__)
 
 #include <errno.h>
+#include <stdio.h>
 #include <fcntl.h>
 #include <string.h>
 #include <sys/ioctl.h>
@@ -371,6 +372,25 @@ int vpad_os_poll(vpad_t *pad)
 vpad_handle_t vpad_os_handle(const vpad_t *pad)
 {
     return pad->os->fd;
+}
+
+int vpad_os_syspath(const vpad_t *pad, char *buf, size_t buf_len)
+{
+#if defined(UI_GET_SYSNAME)
+    char name[64];
+    int n;
+
+    memset(name, 0, sizeof(name));
+    if (ioctl(pad->os->fd, UI_GET_SYSNAME(sizeof(name) - 1), name) < 0)
+        return vpad_errno_status(errno);
+    n = snprintf(buf, buf_len, "/sys/devices/virtual/input/%s", name);
+    return n > 0 && (size_t)n < buf_len ? VPAD_OK : VPAD_ERR_IO;
+#else
+    (void)pad;
+    (void)buf;
+    (void)buf_len;
+    return VPAD_ERR_UNSUPPORTED;
+#endif
 }
 
 const char *vpad_os_backend(void)

@@ -31,6 +31,14 @@ vpad_handle_t vpad_os_handle(const vpad_t *pad)
     return VPAD_NO_HANDLE;
 }
 
+int vpad_os_syspath(const vpad_t *pad, char *buf, size_t buf_len)
+{
+    (void)pad;
+    (void)buf;
+    (void)buf_len;
+    return VPAD_ERR_UNSUPPORTED;
+}
+
 const char *vpad_os_backend(void)
 {
     return "none";

@@ -34,6 +34,7 @@ extern "C" {
 #define VPAD_ERR_ACCESS 5
 #define VPAD_ERR_IO 6
 #define VPAD_ERR_AGAIN 7
+#define VPAD_ERR_RANGE 8
 
 #define VPAD_XBOX360 0
 #define VPAD_GENERIC 1
@@ -134,6 +135,7 @@ VPAD_API int vpad_neutral(vpad_t *pad);
 VPAD_API int vpad_next_event(vpad_t *pad, vpad_event_t *out_event);
 VPAD_API int vpad_wait(vpad_t *pad, long timeout_ms);
 VPAD_API vpad_handle_t vpad_handle(const vpad_t *pad);
+VPAD_API int vpad_syspath(const vpad_t *pad, char *buf, size_t buf_len, size_t *out_len);
 VPAD_API const char *vpad_backend(void);
 VPAD_API const char *vpad_strerror(int status);
 

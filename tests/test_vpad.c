@@ -100,6 +100,7 @@ static void test_bad_args(void)
     CHECK(vpad_neutral(NULL) == VPAD_ERR_ARG);
     CHECK(vpad_next_event(NULL, &event) == VPAD_ERR_ARG);
     CHECK(vpad_wait(NULL, 0) == VPAD_ERR_ARG);
+    CHECK(vpad_syspath(NULL, NULL, 0, NULL) == VPAD_ERR_ARG);
     CHECK(vpad_handle(NULL) == VPAD_NO_HANDLE);
     CHECK(vpad_backend() != NULL);
     CHECK(strcmp(vpad_strerror(VPAD_ERR_NODEVICE), vpad_strerror(-1)) != 0);
@@ -118,6 +119,7 @@ static void test_bad_args(void)
 #include <time.h>
 #include <unistd.h>
 
+#define VPAD_TEST_PATH 256
 #define BIT_SET(bits, n) ((bits)[(n) / 8] >> ((n) % 8) & 1)
 
 static void pause_ms(long ms)
@@ -357,6 +359,26 @@ static void test_no_ff(void)
     vpad_destroy(pad);
 }
 
+static void test_syspath(void)
+{
+    char name[64];
+    char path[VPAD_TEST_PATH];
+    char small[8];
+    char got[256];
+    vpad_t *pad = NULL;
+    size_t len = 0;
+
+    snprintf(name, sizeof(name), "vpad test syspath %ld", (long)getpid());
+    CHECK(make_pad(VPAD_GENERIC, name, 0, 0, NULL, NULL, NULL, &pad) == VPAD_OK);
+    CHECK(vpad_syspath(pad, NULL, 0, &len) == VPAD_OK && len > 0);
+    CHECK(vpad_syspath(pad, small, sizeof(small), NULL) == VPAD_ERR_RANGE);
+    CHECK(vpad_syspath(pad, path, sizeof(path), &len) == VPAD_OK && strlen(path) == len);
+    CHECK(strncat(path, "/name", sizeof(path) - strlen(path) - 1) != NULL);
+    CHECK(read_line(path, got, sizeof(got)) && strcmp(got, name) == 0);
+    CHECK(vpad_syspath(pad, NULL, 4, &len) == VPAD_ERR_ARG);
+    vpad_destroy(pad);
+}
+
 static void test_reports(void)
 {
     struct input_event events[32];
@@ -520,6 +542,53 @@ static void test_force_feedback(void)
     vpad_destroy(pad);
 }
 
+typedef struct sender {
+    vpad_t *pad;
+    int sent;
+    int failed;
+} sender_t;
+
+static void *sender_thread(void *arg)
+{
+    sender_t *sender = arg;
+    int i;
+
+    for (i = 0; i < 2000; i++) {
+        if (vpad_set_axis(sender->pad, VPAD_AXIS_LX, (i % 200) * 300 - 30000) != VPAD_OK ||
+            vpad_set_button(sender->pad, VPAD_BTN_A, i % 2) != VPAD_OK || vpad_send(sender->pad) != VPAD_OK)
+            sender->failed = 1;
+        else
+            sender->sent++;
+    }
+    return NULL;
+}
+
+static void test_threads(void)
+{
+    vpad_event_t events[16];
+    pthread_t game_tid;
+    pthread_t send_tid;
+    sender_t sender;
+    game_t game;
+    char name[64];
+    vpad_t *pad = NULL;
+
+    snprintf(name, sizeof(name), "vpad test threads %ld", (long)getpid());
+    CHECK(make_pad(VPAD_XBOX360, name, 0, 0, NULL, NULL, NULL, &pad) == VPAD_OK);
+    memset(&game, 0, sizeof(game));
+    memset(&sender, 0, sizeof(sender));
+    game.name = name;
+    sender.pad = pad;
+    CHECK(pthread_create(&send_tid, NULL, sender_thread, &sender) == 0);
+    CHECK(pthread_create(&game_tid, NULL, game_thread, &game) == 0);
+    CHECK(collect_events(pad, events, 9) == 9);
+    CHECK(pthread_join(game_tid, NULL) == 0);
+    CHECK(pthread_join(send_tid, NULL) == 0);
+    CHECK(game.ok && !sender.failed && sender.sent == 2000);
+    CHECK(events[0].kind == VPAD_EV_UPLOAD && events[8].kind == VPAD_EV_ERASE);
+    vpad_destroy(pad);
+}
+
 static void test_alloc_failure(void)
 {
     vpad_t *pad;
@@ -562,8 +631,10 @@ int main(void)
     test_identity();
     test_no_ff();
     test_ds4();
+    test_syspath();
     test_reports();
     test_force_feedback();
+    test_threads();
     test_alloc_failure();
 #endif
     return 0;

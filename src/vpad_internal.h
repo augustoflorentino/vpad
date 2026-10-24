@@ -12,6 +12,7 @@
 
 #define VPAD_NAME_MAX 80
 #define VPAD_QUEUE_LEN 32
+#define VPAD_PATH_MAX 128
 
 struct vpad_mem {
     vpad_alloc_fn alloc_fn;
@@ -50,6 +51,7 @@ void vpad_os_close(vpad_t *pad);
 int vpad_os_send(vpad_t *pad);
 int vpad_os_poll(vpad_t *pad);
 vpad_handle_t vpad_os_handle(const vpad_t *pad);
+int vpad_os_syspath(const vpad_t *pad, char *buf, size_t buf_len);
 const char *vpad_os_backend(void);
 
 #endif

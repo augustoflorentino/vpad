@@ -239,6 +239,28 @@ vpad_handle_t vpad_handle(const vpad_t *pad)
     return pad ? vpad_os_handle(pad) : VPAD_NO_HANDLE;
 }
 
+int vpad_syspath(const vpad_t *pad, char *buf, size_t buf_len, size_t *out_len)
+{
+    char path[VPAD_PATH_MAX];
+    size_t len;
+    int status;
+
+    if (pad == NULL || (buf == NULL && buf_len > 0))
+        return VPAD_ERR_ARG;
+    status = vpad_os_syspath(pad, path, sizeof(path));
+    if (status != VPAD_OK)
+        return status;
+    len = strlen(path);
+    if (out_len != NULL)
+        *out_len = len;
+    if (buf == NULL)
+        return VPAD_OK;
+    if (buf_len <= len)
+        return VPAD_ERR_RANGE;
+    memcpy(buf, path, len + 1);
+    return VPAD_OK;
+}
+
 const char *vpad_backend(void)
 {
     return vpad_os_backend();
@@ -263,6 +285,8 @@ const char *vpad_strerror(int status)
         return "virtual device input/output failed";
     case VPAD_ERR_AGAIN:
         return "no event pending";
+    case VPAD_ERR_RANGE:
+        return "buffer too small";
     default:
         return "unknown status";
     }
