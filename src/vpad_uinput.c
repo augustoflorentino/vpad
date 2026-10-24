@@ -117,7 +117,7 @@ static int vpad_enable(const vpad_t *pad, int fd)
         status = vpad_ioctl_int(fd, UI_SET_KEYBIT, BTN_TR2);
     for (i = 0; i < 4 && status == VPAD_OK; i++)
         status = pad->kind == VPAD_DS4 ? vpad_abs_setup(fd, vpad_abs_codes[i], 0, 255, 0, 0, 128)
-                                       : vpad_abs_setup(fd, vpad_abs_codes[i], -32768, 32767, 16, 128, 0);
+                                       : vpad_abs_setup(fd, vpad_abs_codes[i], -32768, 32767, 0, 128, 0);
     for (i = 4; i < VPAD_AXIS_COUNT && status == VPAD_OK; i++)
         status = vpad_abs_setup(fd, vpad_abs_codes[i], 0, 255, 0, 0, 0);
     if (status == VPAD_OK)

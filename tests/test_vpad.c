@@ -359,6 +359,31 @@ static void test_no_ff(void)
     vpad_destroy(pad);
 }
 
+static void test_fine_moves(void)
+{
+    struct input_event events[32];
+    char name[64];
+    vpad_t *pad = NULL;
+    int fd;
+    int n;
+
+    snprintf(name, sizeof(name), "vpad test fine %ld", (long)getpid());
+    CHECK(make_pad(VPAD_XBOX360, name, 0, 0, NULL, NULL, NULL, &pad) == VPAD_OK);
+    fd = open_node(name, O_RDONLY | O_NONBLOCK);
+    CHECK(fd >= 0);
+    CHECK(vpad_set_axis(pad, VPAD_AXIS_LX, 1000) == VPAD_OK && vpad_send(pad) == VPAD_OK);
+    n = read_report(fd, events, 32);
+    CHECK(n == 1 && report_has(events, n, EV_ABS, ABS_X, 1000));
+    CHECK(vpad_set_axis(pad, VPAD_AXIS_LX, 1004) == VPAD_OK && vpad_send(pad) == VPAD_OK);
+    n = read_report(fd, events, 32);
+    CHECK(n == 1 && report_has(events, n, EV_ABS, ABS_X, 1004));
+    CHECK(vpad_set_axis(pad, VPAD_AXIS_LX, 1014) == VPAD_OK && vpad_send(pad) == VPAD_OK);
+    n = read_report(fd, events, 32);
+    CHECK(n == 1 && report_has(events, n, EV_ABS, ABS_X, 1014));
+    close(fd);
+    vpad_destroy(pad);
+}
+
 static void test_syspath(void)
 {
     char name[64];
@@ -634,6 +659,7 @@ int main(void)
     test_no_ff();
     test_ds4();
     test_syspath();
+    test_fine_moves();
     test_reports();
     test_force_feedback();
     test_threads();
