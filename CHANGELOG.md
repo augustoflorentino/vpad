@@ -4,6 +4,9 @@ Each release lists what changed, what updating means for existing code, and ever
 
 ## Unreleased
 
+- README: the padff example copied `sizeof(pff_effect_t)` bytes from the event; with padff 2.4
+  (28 bytes) that reads past the end of a 24-byte effect. It now copies `event.effect.size`
+
 ## 3.3.0 - 2026-10-31
 
 New function and a fix; no change needed in existing code.

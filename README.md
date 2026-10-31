@@ -13,8 +13,9 @@ game's rumble requests back to you, on Linux, FreeBSD, macOS and Windows.
   its sync, and nothing is written when nothing changed
 - force feedback as events: effect upload, erase, play/stop and gain, already answered to the
   game; `vpad_effect_t` has the same fields, order and type values as `pff_effect_t` from
-  padff 1.0, so effects go straight into it. Its first field, `size`, is always
-  `sizeof(vpad_effect_t)`, which is what padff checks
+  padff 1.0, so effects go straight into it. Its first field, `size`, is the number of bytes
+  vpad filled, which is what padff checks. Copy `event.effect.size` bytes, never
+  `sizeof(pff_effect_t)`: padff 2.4 grew its struct to 28 bytes and would read past the event
 - `vpad_neutral` releases every button and centers every axis in one report
 
 <picture>
@@ -91,7 +92,8 @@ while (vpad_next_event(pad, &event, sizeof(event)) == VPAD_OK) {
     if (event.kind == VPAD_EV_UPLOAD) {
         pff_effect_t effect;
 
-        memcpy(&effect, &event.effect, sizeof(effect));
+        memset(&effect, 0, sizeof(effect));
+        memcpy(&effect, &event.effect, event.effect.size);
         pff_mixer_upload(mixer, event.slot, &effect, now_ms);
     }
 }
