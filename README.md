@@ -152,7 +152,10 @@ Conventions:
   removes the device
 - a pad is used from one thread at a time, with one exception: one thread may set and send
   input (`vpad_set_button`, `vpad_set_axis`, `vpad_send`, `vpad_neutral`) while another reads
-  force feedback (`vpad_next_event`, `vpad_wait`); they touch separate state
+  force feedback (`vpad_next_event`, `vpad_wait`); they touch separate state. `vpad_wake` may
+  be called from any thread: it makes the current or next `vpad_wait` return
+  `VPAD_ERR_AGAIN` at once, which is how the input thread stops a force feedback thread
+  blocked in `vpad_wait(pad, -1)` before `vpad_destroy`
 - `vpad_syspath` gives the sysfs directory of the pad on Linux, such as
   `/sys/devices/virtual/input/input42`, whose `event*` entry is the pad's node. A remapper
   that reads every input device uses it to skip its own pad. `buf` `NULL` with `buf_len` `0`
