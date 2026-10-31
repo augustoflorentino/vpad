@@ -4,6 +4,17 @@ Each release lists what changed, what updating means for existing code, and ever
 
 ## Unreleased
 
+## 3.3.0 - 2026-10-31
+
+New function and a fix; no change needed in existing code.
+
+- `vpad_wake`: wake a thread blocked in `vpad_wait`. Since 2.2.0 force feedback may run on its
+  own thread, but a thread waiting with no time limit could only be released by an event
+  from the game, so a clean shutdown needed a polling timeout
+- Linux: stick changes smaller than 16 units reached readers late or not at all; the kernel's
+  noise filter (`fuzz` 16, copied from real pads) dropped changes under 8 and averaged the
+  rest. A virtual pad has no noise, so the filter is off and every value arrives as sent
+
 ## 3.0.0 - 2026-10-24
 
 Incompatible change: `vpad_next_event` takes the size of the event.
