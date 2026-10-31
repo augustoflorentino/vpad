@@ -1,40 +1,50 @@
 # vpad
 
-Virtual gamepad with force feedback. One API creates the pad, sends its state and hands the
-game's rumble requests back to you, on Linux, FreeBSD, macOS and Windows.
-
-- backends: uinput (Linux, FreeBSD), IOHIDUserDevice (macOS 12+), ViGEmBus (Windows); a
-  missing service is reported as an error, never ignored (`vpad_backend` names the backend)
-- identity: Xbox 360 (`Microsoft X-Box 360 pad`, 045e:028e), generic, or your own name,
-  vendor and product
-- canonical layout: 15 buttons including the d-pad, sticks from -32768 to 32767 (Y positive
-  is down), triggers from 0 to 255; the d-pad becomes a hat where the platform expects one
-- one report per `vpad_send`: every change since the last send goes out in a single write with
-  its sync, and nothing is written when nothing changed
-- force feedback as events: effect upload, erase, play/stop and gain, already answered to the
-  game; `vpad_effect_t` has the same fields, order and type values as `pff_effect_t` from
-  padff 1.0, so effects go straight into it. Its first field, `size`, is the number of bytes
-  vpad filled, which is what padff checks. Copy `event.effect.size` bytes, never
-  `sizeof(pff_effect_t)`: padff 2.4 grew its struct to 28 bytes and would read past the event
-- `vpad_neutral` releases every button and centers every axis in one report
+Creates a virtual gamepad, sends its input and hands you the rumble the game asks for, with the
+same C API on Linux, FreeBSD, macOS and Windows.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/rumble-dark.gif">
   <img src="docs/images/rumble-light.gif" alt="The rumble example printing the force feedback requests of an SDL3 game" width="674">
 </picture>
 
-## Requirements
+*[`examples/rumble.c`](examples/rumble.c) on Linux while an SDL3 program calls
+`SDL_RumbleGamepad`.*
 
-| Platform | Backend | What it needs |
+| System | Backend | Needs |
 | --- | --- | --- |
 | Linux | uinput | write access to `/dev/uinput` (udev rule, ACL or the `input` group) |
 | FreeBSD | uinput | the `uinput` module and access to `/dev/uinput` |
 | macOS 12+ | IOHIDUserDevice | the `com.apple.developer.hid.virtual.device` entitlement |
-| Windows 7+ | ViGEmBus | the ViGEmBus driver installed; no ViGEmClient needed |
+| Windows 7+ | ViGEmBus | the ViGEmBus driver; ViGEmClient is not needed |
 
-Other systems build and return `VPAD_ERR_UNSUPPORTED`.
+Anywhere else it builds, and `vpad_create` returns `VPAD_ERR_UNSUPPORTED`.
 
-## Build and install
+## Background
+
+Each system fakes a gamepad its own way, has its own library for it (libevdev, ViGEmClient),
+and gives the game's rumble back in its own shape, if at all. A remapper or a controller
+forwarder that runs on more than one system ends up written three times. vpad is those three
+behind one API, with force feedback arriving as the same events everywhere. Its effects have the
+layout of [padff](https://github.com/augustoflorentino/padff)'s `pff_effect_t`, so they can go
+straight into that mixer.
+
+## Features
+
+- Xbox 360 (045e:028e) on every backend, DualShock 4 (054c:09cc) on Linux and FreeBSD, a
+  generic pad, or your own name and USB ids
+- one layout: 15 buttons with the d-pad, sticks from -32768 to 32767 (Y positive is down),
+  triggers from 0 to 255; the d-pad becomes a hat where the platform expects one
+- `vpad_send` sends one report with every change since the last one, and nothing if nothing
+  changed
+- force feedback as events (effect upload, erase, play and stop, gain, player slot), already
+  answered to the game
+- input on one thread and force feedback on another, a pollable handle, and `vpad_wake` to free
+  a blocked wait
+- a missing service is an error, never ignored; `vpad_backend` names the backend in use
+- optional custom allocator; also ships as a single header
+
+## Install
 
 ```sh
 cmake -S . -B build -DBUILD_SHARED_LIBS=ON
@@ -42,33 +52,15 @@ cmake --build build
 cmake --install build --prefix /usr/local
 ```
 
-Use it from CMake:
+`find_package(vpad REQUIRED)` and `vpad::vpad` from CMake, `pkg-config --cflags --libs vpad`
+otherwise.
 
-```cmake
-find_package(vpad REQUIRED)
-target_link_libraries(app PRIVATE vpad::vpad)
-```
+`scripts/amalgamate.sh` writes `dist/vpad/vpad.h` for projects that would rather copy one file.
+Define `VPAD_IMPLEMENTATION` in one `.c` file before any other include, and `VPAD_STATIC` too if
+the functions should stay private to it. Link `setupapi` on Windows, `IOKit` and
+`CoreFoundation` on macOS.
 
-Or with pkg-config:
-
-```sh
-cc app.c $(pkg-config --cflags --libs vpad)
-```
-
-## Single-file form
-
-`scripts/amalgamate.sh` writes `dist/vpad/vpad.h`. Copy it into your project and, in exactly
-one `.c` file, before any other include:
-
-```c
-#define VPAD_IMPLEMENTATION
-#include "vpad.h"
-```
-
-Define `VPAD_STATIC` as well to keep every function private to that file. Link `setupapi` on
-Windows and the `IOKit` and `CoreFoundation` frameworks on macOS.
-
-## Usage
+## Example
 
 ```c
 vpad_config_t config;
@@ -102,9 +94,32 @@ vpad_neutral(pad);
 vpad_destroy(pad);
 ```
 
-Events:
+[`examples/basic.c`](examples/basic.c) walks the buttons, a stick and a trigger through 100
+reports:
 
-| `kind` | `slot` | `value` | `effect` |
+```console
+$ ./basic
+sent 100 reports through uinput
+```
+
+## API
+
+All of it is in [`include/vpad/vpad.h`](include/vpad/vpad.h).
+
+`vpad_config_init` fills `size` and the kind and zeroes everything else. The fields to set:
+
+- `name`: device name, up to 79 bytes; `NULL` keeps the default of the kind
+- `vendor`, `product`: USB ids; both 0 keep the default of the kind
+- `flags`: `VPAD_NO_FF` makes a pad without force feedback, so a game gets an error at once
+  instead of waiting, on Linux, for a `vpad_next_event` an input-only program never calls
+- `alloc_fn`, `free_fn`, `alloc_ctx`: your allocator, or `NULL` for `malloc` and `free`
+
+`VPAD_XBOX360` works on every backend and `VPAD_GENERIC` is the same controls under a neutral
+identity. `VPAD_DS4`, on Linux and FreeBSD, looks the way the kernel's driver shows a real one:
+face buttons by position (`VPAD_BTN_A` is cross), digital L2 and R2 pressed while the trigger
+is above 0, rumble only.
+
+| event `kind` | `slot` | `value` | `effect` |
 | --- | --- | --- | --- |
 | `VPAD_EV_UPLOAD` | effect slot (0 to 15) | | the new or updated effect |
 | `VPAD_EV_ERASE` | effect slot | | |
@@ -112,76 +127,52 @@ Events:
 | `VPAD_EV_GAIN` | 0 | gain, 0 to 65535 | |
 | `VPAD_EV_PLAYER` | 0 | player slot the host gave the pad, 0 to 3 (Windows) | |
 
-New kinds may appear in minor versions; ignore the ones you do not know.
+Minor versions may add kinds; skip the ones you do not know. Effect values follow padff:
+magnitudes 0 to 65535, signed levels -32768 to 32767, envelope levels 0 to 65535 (the Linux 0
+to 32767 scaled so full maps to full), times in milliseconds.
 
-`vpad_next_event` takes `sizeof(event)` and fills that much: a program built against an older
-3.x keeps working when later versions add fields at the end of the event or the effect (as
-padff may), and `event.effect.size` tells how much of the effect it received. It returns
-`VPAD_ERR_AGAIN` when nothing is waiting. `vpad_wait(pad, timeout_ms)` blocks until an event
-may be ready (`VPAD_OK`) or the time passes (`VPAD_ERR_AGAIN`); `-1` waits without limit. To
-wait together with other sources, use `vpad_handle` instead: a file descriptor to `poll` on
-POSIX, an event to `WaitForSingleObject` on Windows. On Linux a game's upload or erase blocks
-until you call `vpad_next_event`, so keep calling it while the pad exists. See [`examples/basic.c`](examples/basic.c) and
-[`examples/rumble.c`](examples/rumble.c).
+- `vpad_next_event` takes `sizeof(event)` and fills that much, so a program built against an
+  older 3.x keeps working when fields are added; `event.effect.size` says how much of the effect
+  arrived. `VPAD_ERR_AGAIN` means nothing is waiting.
+- On Linux a game's upload or erase blocks until `vpad_next_event` is called, so keep calling
+  it for as long as the pad exists.
+- `vpad_wait(pad, timeout_ms)` blocks until an event may be ready (`VPAD_OK`) or the time is up
+  (`VPAD_ERR_AGAIN`); -1 waits forever. To wait on other sources as well, poll `vpad_handle`: a
+  file descriptor on POSIX, an event for `WaitForSingleObject` on Windows.
+- One thread may send input (`vpad_set_button`, `vpad_set_axis`, `vpad_send`, `vpad_neutral`)
+  while another reads force feedback (`vpad_next_event`, `vpad_wait`). `vpad_wake`, from any
+  thread, makes the current or next `vpad_wait` return at once; call it before `vpad_destroy`.
+- `vpad_syspath` gives the pad's sysfs directory on Linux, such as
+  `/sys/devices/virtual/input/input42`, so a remapper can skip its own pad. With `buf` `NULL`
+  and `buf_len` 0 it reports the length; `VPAD_ERR_RANGE` means the buffer is too small.
+- Failing calls return an error code that `vpad_strerror` names. A pad from `vpad_create` is
+  released only by `vpad_destroy`, which accepts `NULL` and removes the device.
 
-Effect values follow padff: magnitudes 0 to 65535, signed levels -32768 to 32767, envelope
-levels 0 to 65535 (the Linux 0 to 32767 scaled up, full to full), times in milliseconds.
+## Platform limits
 
-`vpad_config_init` fills `size` and the kind and zeroes the rest; then set what you need.
-Kinds:
-
-- `VPAD_XBOX360`: Xbox 360 pad (045e:028e), on every backend
-- `VPAD_GENERIC`: the same controls under a neutral identity
-- `VPAD_DS4`: DualShock 4 (054c:09cc), Linux and FreeBSD only for now (`VPAD_ERR_UNSUPPORTED`
-  elsewhere). The pad looks like the kernel's own driver shows a real one: face buttons by
-  position (`VPAD_BTN_A` cross, `B` circle, `X` square, `Y` triangle), sticks 0 to 255
-  centered at 128 (the API keeps -32768 to 32767), digital L2/R2 pressed while the trigger is
-  above 0, and only rumble force feedback
-
-Fields:
-
-- `name`: device name, up to 79 bytes; `NULL` keeps the default for the kind
-- `vendor`, `product`: USB ids; both `0` keep the default for the kind
-- `flags`: `VPAD_NO_FF` makes a pad without force feedback. Games then see no rumble support
-  and get an error at once when they try, instead of waiting on Linux for the
-  `vpad_next_event` an input-only program never calls
-- `alloc_fn`, `free_fn`, `alloc_ctx`: your allocator, or `NULL` for `malloc`/`free`
-
-Conventions:
-
-- every function that can fail returns `VPAD_OK` or an error code; `vpad_strerror` describes it
-- what `vpad_create` returns is released only by `vpad_destroy`, which accepts `NULL` and
-  removes the device
-- a pad is used from one thread at a time, with one exception: one thread may set and send
-  input (`vpad_set_button`, `vpad_set_axis`, `vpad_send`, `vpad_neutral`) while another reads
-  force feedback (`vpad_next_event`, `vpad_wait`); they touch separate state. `vpad_wake` may
-  be called from any thread: it makes the current or next `vpad_wait` return
-  `VPAD_ERR_AGAIN` at once, which is how the input thread stops a force feedback thread
-  blocked in `vpad_wait(pad, -1)` before `vpad_destroy`
-- `vpad_syspath` gives the sysfs directory of the pad on Linux, such as
-  `/sys/devices/virtual/input/input42`, whose `event*` entry is the pad's node. A remapper
-  that reads every input device uses it to skip its own pad. `buf` `NULL` with `buf_len` `0`
-  only reports the length; `VPAD_ERR_RANGE` means the buffer is too small. Other systems
-  return `VPAD_ERR_UNSUPPORTED`
-
-## Limits
-
-- Windows and macOS: the game only sends two motor speeds. Each change arrives as an upload of
-  a rumble effect to slot 0 (length 0, endless), plus one play the first time; zero speeds
-  mean silence. No erase or gain events.
-- Windows: ViGEmBus shows an Xbox 360 pad; the name is ignored, vendor and product are used.
-- macOS: the pad uses its own HID gamepad descriptor (hat d-pad, output report 2 for the two
+- **Windows and macOS**: the game sends only two motor speeds. Each change arrives as an upload
+  of an endless rumble effect to slot 0, plus one play the first time; zero speeds mean
+  silence. There are no erase or gain events.
+- **Windows**: ViGEmBus shows an Xbox 360 pad; the name is ignored, vendor and product are used.
+- **macOS**: the pad has its own HID descriptor (hat d-pad, output report 2 for the two
   motors), buttons 1 to 11 in the order of the `VPAD_BTN_` constants.
-- Linux: other programs that open the pad may write force feedback too (Wine sets the gain
-  when it finds a new pad); those requests arrive as events like any game's.
-- Linux and FreeBSD offer 16 effect slots; unsupported effect types (spring, damper and the
-  other condition effects) are refused to the game with `EINVAL`.
+- **Linux**: other programs that open the pad may send force feedback too (Wine sets the gain
+  when it finds a new pad); their requests arrive as events like a game's.
+- **Linux and FreeBSD**: 16 effect slots; condition effects (spring, damper and the like) are
+  refused to the game with `EINVAL`.
 
-## Versioning
+## Development
 
-Semantic Versioning. Compatible releases bump the minor version; incompatible ones bump the
-major version and the soname. See [CHANGELOG.md](CHANGELOG.md).
+```sh
+cmake --preset dev && cmake --build build/dev && ctest --preset dev
+cmake --preset fuzz && cmake --build build/fuzz
+```
 
-## License
+Tests that create a pad are skipped without access to `/dev/uinput`. The other platforms are
+covered in CI: macOS builds and installs, Windows builds with MSVC at `/W4 /WX`, and every push
+checks the exported symbols and the ABI and runs `fuzz_events`.
 
-MIT, see [LICENSE](LICENSE).
+Version 3.3 is complete, and later releases are fixes; see the [CHANGELOG](CHANGELOG.md).
+Report bugs in the [issues](https://github.com/augustoflorentino/vpad/issues) with the backend
+you used, and vulnerabilities as described in [SECURITY.md](SECURITY.md). Released under the
+[MIT license](LICENSE).
