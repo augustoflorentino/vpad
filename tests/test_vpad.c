@@ -100,6 +100,7 @@ static void test_bad_args(void)
     CHECK(vpad_neutral(NULL) == VPAD_ERR_ARG);
     CHECK(vpad_next_event(NULL, &event, sizeof(event)) == VPAD_ERR_ARG);
     CHECK(vpad_wait(NULL, 0) == VPAD_ERR_ARG);
+    CHECK(vpad_wake(NULL) == VPAD_ERR_ARG);
     CHECK(vpad_syspath(NULL, NULL, 0, NULL) == VPAD_ERR_ARG);
     CHECK(vpad_handle(NULL) == VPAD_NO_HANDLE);
     CHECK(vpad_backend() != NULL);
@@ -616,6 +617,40 @@ static void test_threads(void)
     vpad_destroy(pad);
 }
 
+typedef struct waiter {
+    vpad_t *pad;
+    int status;
+} waiter_t;
+
+static void *waiter_thread(void *arg)
+{
+    waiter_t *waiter = arg;
+
+    waiter->status = vpad_wait(waiter->pad, -1);
+    return NULL;
+}
+
+static void test_wake(void)
+{
+    pthread_t tid;
+    waiter_t waiter;
+    vpad_t *pad = NULL;
+
+    CHECK(make_pad(VPAD_XBOX360, NULL, 0, 0, NULL, NULL, NULL, &pad) == VPAD_OK);
+    CHECK(vpad_wake(pad) == VPAD_OK);
+    CHECK(vpad_wake(pad) == VPAD_OK);
+    CHECK(vpad_wait(pad, 5000) == VPAD_ERR_AGAIN);
+    CHECK(vpad_wait(pad, 0) == VPAD_ERR_AGAIN);
+    waiter.pad = pad;
+    waiter.status = -1;
+    CHECK(pthread_create(&tid, NULL, waiter_thread, &waiter) == 0);
+    pause_ms(100);
+    CHECK(vpad_wake(pad) == VPAD_OK);
+    CHECK(pthread_join(tid, NULL) == 0);
+    CHECK(waiter.status == VPAD_ERR_AGAIN);
+    vpad_destroy(pad);
+}
+
 static void test_alloc_failure(void)
 {
     vpad_t *pad;
@@ -663,6 +698,7 @@ int main(void)
     test_reports();
     test_force_feedback();
     test_threads();
+    test_wake();
     test_alloc_failure();
 #endif
     return 0;

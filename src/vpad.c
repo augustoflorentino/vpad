@@ -7,7 +7,9 @@
 #include <windows.h>
 #else
 #include <errno.h>
+#include <fcntl.h>
 #include <poll.h>
+#include <unistd.h>
 #endif
 
 typedef char vpad_effect_size_check[sizeof(vpad_effect_t) == 24 ? 1 : -1];
@@ -16,6 +18,9 @@ typedef char vpad_effect_layout_check[offsetof(vpad_effect_t, size) == 0 && offs
                                           ? 1
                                           : -1];
 typedef char vpad_event_size_check[sizeof(vpad_event_t) == 32 ? 1 : -1];
+
+static int vpad_wake_open(vpad_t *pad);
+static void vpad_wake_close(vpad_t *pad);
 
 static const char *const vpad_default_names[] = {"Microsoft X-Box 360 pad", "vpad Virtual Gamepad",
                                                  "Sony Interactive Entertainment Wireless Controller"};
@@ -125,6 +130,10 @@ int vpad_create(const vpad_config_t *config, vpad_t **out_pad)
     pad->mem = mem;
     vpad_set_identity(pad, config);
     status = vpad_os_open(pad);
+    if (status == VPAD_OK && vpad_wake_open(pad) != VPAD_OK) {
+        vpad_os_close(pad);
+        status = VPAD_ERR_IO;
+    }
     if (status != VPAD_OK) {
         vpad_mem_free(&pad->mem, pad);
         return status;
@@ -138,6 +147,7 @@ void vpad_destroy(vpad_t *pad)
     if (pad == NULL)
         return;
     vpad_os_close(pad);
+    vpad_wake_close(pad);
     vpad_mem_free(&pad->mem, pad);
 }
 
@@ -200,29 +210,105 @@ int vpad_next_event(vpad_t *pad, vpad_event_t *out_event, size_t event_size)
     return VPAD_OK;
 }
 
-static int vpad_wait_handle(vpad_handle_t handle, long timeout_ms)
-{
 #if defined(_WIN32)
-    DWORD r = WaitForSingleObject(handle, timeout_ms < 0 ? INFINITE : (DWORD)timeout_ms);
 
+static int vpad_wake_open(vpad_t *pad)
+{
+    pad->wake[0] = CreateEventW(NULL, FALSE, FALSE, NULL);
+    pad->wake[1] = pad->wake[0];
+    return pad->wake[0] != NULL ? VPAD_OK : VPAD_ERR_IO;
+}
+
+static void vpad_wake_close(vpad_t *pad)
+{
+    CloseHandle(pad->wake[0]);
+}
+
+int vpad_wake(vpad_t *pad)
+{
+    if (pad == NULL)
+        return VPAD_ERR_ARG;
+    return SetEvent(pad->wake[1]) ? VPAD_OK : VPAD_ERR_IO;
+}
+
+static int vpad_wait_handle(vpad_t *pad, vpad_handle_t handle, long timeout_ms)
+{
+    HANDLE handles[2];
+    DWORD r;
+
+    handles[0] = handle;
+    handles[1] = pad->wake[0];
+    r = WaitForMultipleObjects(2, handles, FALSE, timeout_ms < 0 ? INFINITE : (DWORD)timeout_ms);
     if (r == WAIT_OBJECT_0)
         return VPAD_OK;
-    return r == WAIT_TIMEOUT ? VPAD_ERR_AGAIN : VPAD_ERR_IO;
+    return r == WAIT_TIMEOUT || r == WAIT_OBJECT_0 + 1 ? VPAD_ERR_AGAIN : VPAD_ERR_IO;
+}
+
 #else
-    struct pollfd pfd;
+
+static int vpad_wake_open(vpad_t *pad)
+{
+    int i;
+
+    if (pipe(pad->wake) != 0)
+        return VPAD_ERR_IO;
+    for (i = 0; i < 2; i++) {
+        fcntl(pad->wake[i], F_SETFD, FD_CLOEXEC);
+        fcntl(pad->wake[i], F_SETFL, fcntl(pad->wake[i], F_GETFL) | O_NONBLOCK);
+    }
+    return VPAD_OK;
+}
+
+static void vpad_wake_close(vpad_t *pad)
+{
+    close(pad->wake[0]);
+    close(pad->wake[1]);
+}
+
+int vpad_wake(vpad_t *pad)
+{
+    ssize_t n;
+
+    if (pad == NULL)
+        return VPAD_ERR_ARG;
+    do
+        n = write(pad->wake[1], "", 1);
+    while (n < 0 && errno == EINTR);
+    return n == 1 || errno == EAGAIN || errno == EWOULDBLOCK ? VPAD_OK : VPAD_ERR_IO;
+}
+
+static int vpad_wake_drain(vpad_t *pad)
+{
+    char buf[64];
+    int woken = 0;
+
+    while (read(pad->wake[0], buf, sizeof(buf)) > 0)
+        woken = 1;
+    return woken;
+}
+
+static int vpad_wait_handle(vpad_t *pad, vpad_handle_t handle, long timeout_ms)
+{
+    struct pollfd pfds[2];
     int r;
 
-    pfd.fd = handle;
-    pfd.events = POLLIN;
+    pfds[0].fd = handle;
+    pfds[1].fd = pad->wake[0];
+    pfds[0].events = POLLIN;
+    pfds[1].events = POLLIN;
     do {
-        pfd.revents = 0;
-        r = poll(&pfd, 1, timeout_ms > 2000000000L ? 2000000000 : (int)timeout_ms);
+        pfds[0].revents = 0;
+        pfds[1].revents = 0;
+        r = poll(pfds, 2, timeout_ms > 2000000000L ? 2000000000 : (int)timeout_ms);
     } while (r < 0 && errno == EINTR);
-    if (r > 0)
-        return VPAD_OK;
-    return r == 0 ? VPAD_ERR_AGAIN : VPAD_ERR_IO;
-#endif
+    if (r < 0)
+        return VPAD_ERR_IO;
+    if (pfds[1].revents != 0 && vpad_wake_drain(pad))
+        return VPAD_ERR_AGAIN;
+    return pfds[0].revents != 0 ? VPAD_OK : VPAD_ERR_AGAIN;
 }
+
+#endif
 
 int vpad_wait(vpad_t *pad, long timeout_ms)
 {
@@ -235,7 +321,7 @@ int vpad_wait(vpad_t *pad, long timeout_ms)
     handle = vpad_os_handle(pad);
     if (handle == VPAD_NO_HANDLE)
         return VPAD_ERR_UNSUPPORTED;
-    return vpad_wait_handle(handle, timeout_ms);
+    return vpad_wait_handle(pad, handle, timeout_ms);
 }
 
 vpad_handle_t vpad_handle(const vpad_t *pad)

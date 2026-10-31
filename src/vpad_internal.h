@@ -38,6 +38,7 @@ struct vpad {
     unsigned queue_head;
     unsigned queue_len;
     struct vpad_os *os;
+    vpad_handle_t wake[2];
 };
 
 void *vpad_mem_alloc(const struct vpad_mem *mem, size_t size);
